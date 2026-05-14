@@ -1,0 +1,65 @@
+name: Bump formulae
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # daily at midnight UTC
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  bump-formulae:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up git
+        uses: Homebrew/actions/git-user-config@main
+
+      - name: Bump all formulae
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CHANGED=()
+          for formula in Formula/*.rb; do
+            name=$(basename "$formula" .rb)
+            echo "::group::Checking $name"
+            if brew livecheck --quiet --newer "$name"; then
+              echo "New version available for $name"
+              CHANGED+=("$name")
+            fi
+            echo "::endgroup::"
+          done
+
+          if [ ${#CHANGED[@]} -eq 0 ]; then
+            echo "All formulae are up to date."
+            exit 0
+          fi
+
+          echo "Formulas to update: ${CHANGED[*]}"
+
+          for name in "${CHANGED[@]}"; do
+            echo "::group::Bumping $name"
+            brew bump-formula-pr \
+              --no-fork \
+              --no-browse \
+              --no-audit \
+              --write-only \
+              "$name" || true
+            echo "::endgroup::"
+          done
+
+          if git diff --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git add Formula/*.rb
+          git commit -m "auto-bump: update ${CHANGED[*]}"
+          git push origin main
