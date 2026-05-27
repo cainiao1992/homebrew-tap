@@ -1,8 +1,8 @@
 class Apkeditor < Formula
   desc "APK editor for parsing, decoding, and editing Android APK files"
   homepage "https://github.com/REAndroid/APKEditor"
-  url "https://github.com/REAndroid/APKEditor/releases/download/V1.4.8/APKEditor-1.4.8.jar"
-  sha256 "026906af28497577496a3e1f5054a878a7cf9c1b3889626882d87ea88d09c20f"
+  url "https://github.com/REAndroid/APKEditor/releases/download/V1.4.9/APKEditor-1.4.9.jar"
+  sha256 "a9cd40df818845456be6d696de6110c89edf4b0a0580cb83438ed6b25a366e67"
   license "MIT"
 
   livecheck do
