@@ -25,44 +25,92 @@ jobs:
       - name: Set up git
         uses: Homebrew/actions/git-user-config@main
 
-      - name: Bump all formulae
+      - name: Bump formulae and casks
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
+
           CHANGED=()
           for formula in Formula/*.rb; do
             name=$(basename "$formula" .rb)
-            echo "::group::Checking $name"
-            if brew livecheck --quiet --newer "$name"; then
-              echo "New version available for $name"
-              CHANGED+=("$name")
+            echo "::group::Checking formula $name"
+            json=$(brew livecheck --json --quiet "$name")
+            outdated=$(echo "$json" | jq -r '.[0].version.outdated // false')
+            if [ "$outdated" = "true" ]; then
+              latest=$(echo "$json" | jq -r '.[0].version.latest')
+              echo "New version available for $name: ${latest}"
+              CHANGED+=("formula:${name}:${latest}")
+            fi
+            echo "::endgroup::"
+          done
+
+          for cask in Casks/*.rb; do
+            [ -e "$cask" ] || continue
+            name=$(basename "$cask" .rb)
+            echo "::group::Checking cask $name"
+            json=$(brew livecheck --cask --json --quiet "$name")
+            outdated=$(echo "$json" | jq -r '.[0].version.outdated // false')
+            if [ "$outdated" = "true" ]; then
+              latest=$(echo "$json" | jq -r '.[0].version.latest')
+              echo "New version available for $name: ${latest}"
+              CHANGED+=("cask:${name}:${latest}")
             fi
             echo "::endgroup::"
           done
 
           if [ ${#CHANGED[@]} -eq 0 ]; then
-            echo "All formulae are up to date."
+            echo "All formulae and casks are up to date."
             exit 0
           fi
 
-          echo "Formulas to update: ${CHANGED[*]}"
+          echo "Packages to update: ${CHANGED[*]}"
 
-          for name in "${CHANGED[@]}"; do
-            echo "::group::Bumping $name"
-            brew bump-formula-pr \
+          FAILED=()
+          for entry in "${CHANGED[@]}"; do
+            kind="${entry%%:*}"
+            rest="${entry#*:}"
+            name="${rest%%:*}"
+            version="${rest#*:}"
+            echo "::group::Bumping $kind $name to $version"
+            if [ "$kind" = "cask" ]; then
+              if ! brew bump-cask-pr \
+                --no-fork \
+                --no-browse \
+                --no-audit \
+                --write-only \
+                --version="$version" \
+                "$name"; then
+                FAILED+=("$name")
+              fi
+            elif ! brew bump-formula-pr \
               --no-fork \
               --no-browse \
               --no-audit \
               --write-only \
-              "$name" || true
+              --version="$version" \
+              "$name"; then
+              FAILED+=("$name")
+            fi
             echo "::endgroup::"
           done
+
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo "::error::Failed to bump: ${FAILED[*]}"
+            exit 1
+          fi
 
           if git diff --quiet; then
             echo "No changes to commit."
             exit 0
           fi
 
-          git add Formula/*.rb
-          git commit -m "auto-bump: update ${CHANGED[*]}"
+          names=()
+          for entry in "${CHANGED[@]}"; do
+            rest="${entry#*:}"
+            names+=("${rest%%:*}")
+          done
+
+          git add -A Formula Casks
+          git commit -m "auto-bump: update ${names[*]}"
           git push origin main
