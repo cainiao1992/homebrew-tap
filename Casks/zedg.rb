@@ -2,11 +2,11 @@ cask "zedg" do
   arch arm: "aarch64", intel: "x86_64"
   os macos: "macos", linux: "linux"
 
-  version "1.8.2"
-  sha256 arm:          "db4194054771e347da2ca85286e85abc4a98afd869c79a3007eb178e602f9fb1",
-         x86_64:       "6713c5791b7dd2ab2b5e8f66c201a256b227e591e034422034acffa87bc17fce",
-         arm64_linux:  "c1f4466c5cd2d0a379d9b117160ae3ce94e453bd960810c88effec72b31a0911",
-         x86_64_linux: "28f561d824a27b41bc6d63166f559d1fe0619d6107ded3014440a6da812a4273"
+  version "1.9.0"
+  sha256 arm:          "79246c165e0aec4ac5a9615b04953212ba99fe175bc6e569957e7b4dc2fb16f9",
+         x86_64:       "bf21a89510d699078bdc6814ec55cceaa6282dc020366f90540a03a29dae6a2d",
+         arm64_linux:  "ed6f0042fbc235a0d412a2e15b415f75de610e991d492c8966d531c4f1b258df",
+         x86_64_linux: "48f1ec29723c468fb1786ff93edff284151d6bf398839fbe86599e84f8543a7e"
 
   url "https://github.com/x6nux/zed-globalization/releases/download/v#{version}/zedg-zh-cn-#{os}-#{arch}-v#{version}.#{on_macos { "dmg" } || "tar.gz"}"
   name "ZedG"
