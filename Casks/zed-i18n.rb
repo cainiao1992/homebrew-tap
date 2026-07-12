@@ -1,7 +1,7 @@
 cask "zed-i18n" do
   arch arm: "aarch64", intel: "x86_64"
   os macos: "macos", linux: "linux"
-  version "1.9.0,1"
+  version "1.9.0-i18n.1"
 
   language "cs" do
     sha256 arm: "2ddab30a05363a17596b610e81c36026e680c6e48bb83131a062e4977ac01144", intel: "0683bcd4fd319148b3bf4307b929966e132e25558913e3a2ea54f8db127b56b5",
@@ -70,7 +70,7 @@ cask "zed-i18n" do
   end
 
   # macOS ships "Zed-i18n-<lang>-macos-<arch>.dmg"; Linux ships "zed-i18n-<lang>-linux-<arch>.tar.gz".
-  url "https://github.com/LI-NA/zed-i18n/releases/download/v#{version.csv.first}-i18n.#{version.csv.second}/#{on_macos { "Zed-i18n" } || "zed-i18n"}-#{language}-#{os}-#{arch}.#{on_macos { "dmg" } || "tar.gz"}"
+  url "https://github.com/LI-NA/zed-i18n/releases/download/v#{version}/#{on_macos { "Zed-i18n" } || "zed-i18n"}-#{language}-#{os}-#{arch}.#{on_macos { "dmg" } || "tar.gz"}"
   name "Zed"
   desc "Localized build of the Zed editor"
   homepage "https://github.com/LI-NA/zed-i18n"
@@ -78,6 +78,7 @@ cask "zed-i18n" do
   livecheck do
     url :homepage
     strategy :github_latest
+    regex(/v?(\d+\.\d+\.\d+-i18n\.\d+)/i)
   end
 
   on_macos do
