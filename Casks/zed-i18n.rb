@@ -2,97 +2,97 @@ cask "zed-i18n" do
   arch arm: "aarch64", intel: "x86_64"
   os macos: "macos", linux: "linux"
 
-  version "1.10.2-i18n.1"
+  version "1.10.3-i18n.1"
 
   language "cs" do
-    sha256 arm:          "d59a175d80186ded5f1e87b30ff16a53cf246f6247f8afa5753abc77f78bf7f3",
-           intel:        "dc1253f35279753b4ba7e3589a23457632016af4362141080a738017c62bca7d",
-           arm64_linux:  "3b66c3b4a47578ff7dbf230742591fdf464d5dfd205dd3df8c9a314fbc6fc009",
-           x86_64_linux: "5b17a29ecf55b185b2c3de7d31c1ff87447d24f5545a4dd3febb3d70574da2c1"
+    sha256 arm:          "b5ec905bf0bd195018c6986a56cc46e995d7d5c5e5af74439b9d2288adb0e6ae",
+           intel:        "08b3ee564bd8f818e9043dca85ef5322e20a10e9a5688eb12ef209310c47d842",
+           arm64_linux:  "61e45f72149996b0ead2d3051a374878006614bdc9e1f52328819e298eb2c50a",
+           x86_64_linux: "1d4100bac3703986b59e40aeab34c6dac17273855b7054b6e360b8f97152f95d"
     "cs-CZ"
   end
   language "de" do
-    sha256 arm:          "28eba751bbc7ee528c1e278c549bac37f354a95bb417e7c640b257f07048209e",
-           intel:        "8c3807a998903d1a68c02100779eb3c6883d391fa06d42b9ed9297030eb2aacf",
-           arm64_linux:  "6b9a02db376f1ec92a080bfcac3db5e066dd41950351d7e5a07bac94771aaf14",
-           x86_64_linux: "a382f33da6ef216dc628f89c2810b829e55dfe0583cdb3b7764a8a70defd0a75"
+    sha256 arm:          "9e495256313e10ce3c3ed830ef1b11cbaaf0f538b54fcb16dd205eac0864d3d2",
+           intel:        "097fdd5e08a7e88041125c7d112492b86cc6136297ed57d1463dba43cc2d7245",
+           arm64_linux:  "b767549183f4f42e0fd3a8141f6def88971d5812c09f51882a710335640d4ff8",
+           x86_64_linux: "1e8c9cf25f3447d3725091bba74fd50ff67d2553634638081829506ad0cc25cb"
     "de-DE"
   end
   language "es" do
-    sha256 arm:          "f0a7473debb2a364bcf96916a6c05e275c79612414371923998f33f63f923ae0",
-           intel:        "610b0cb66d486bb772e38832fbd777c0217fd6583d4ba10b632c006712f5cbec",
-           arm64_linux:  "4edb99034c82b8b4b8dbf73305a16fa7880e9a9879651429051016731d19d489",
-           x86_64_linux: "51ba64549fc575f2562530cef50d4d9e31dd9e88fe2de5051099ca63b1d7c0f0"
+    sha256 arm:          "9f04cb61f43a2dee15864c2a80087d04c1ef7b41575ea13dc57fcdfad6388efe",
+           intel:        "148387df7666bf73b55603d6da1798b53460f3893f384c90add37168aea97d36",
+           arm64_linux:  "9451a1bcbdb727af1a12a9d2dd86c605b2e8b94a17e9cb99cb7ad45703996bc9",
+           x86_64_linux: "425e6c2533bbec4100d37d0b369f250688c04d393a09ece34eee58431d8b18fa"
     "es-ES"
   end
   language "fr" do
-    sha256 arm:          "dd4c0de7cda15ccd8e6e13e98edec2329b6f138c164d5f9708498e3bb94e4c8c",
-           intel:        "6230bc8aa587da95a3a5a840a8fe69ab60e887d3967be8d1c4a567213e8e192c",
-           arm64_linux:  "746993fca1eebf45a996e8eef05dd187f6c9a71e96f869099c39846e9c160e2e",
-           x86_64_linux: "a0491ef2ca782e7b979f30a443a1e9ce5d3e46d2762d087f5000d656917d1941"
+    sha256 arm:          "deb30442df26031a1810265fd147f7cbf9020ca9b078b80173e03887b4dcfafd",
+           intel:        "933f74be1cc952b26e9421efe7a5d11d466661cd9de95ac7b7fe971ddfb61c6c",
+           arm64_linux:  "f100259720e5769622cba6ec3d9893e1f53700dfe5ba3019006550087685d52f",
+           x86_64_linux: "4056e3527984fad9b2f81ef7f49aa80c8d4d4b025f098a41f9e0107808897248"
     "fr-FR"
   end
   language "it" do
-    sha256 arm:          "4e76082f8ab4b294e9ca2bb96b79b0f0d5621170ce31963b8f48c71fab299ddb",
-           intel:        "d7377831cd402f0bbbccf7d787e2a2538e4e876817f38924f0c01b0ead28d008",
-           arm64_linux:  "ccf44acc9e1550ae4b10657256a2242c2a0287af4be2df54745a8cabf83dedac",
-           x86_64_linux: "22b6684398ecdaf474da293a7bfab5206715ec3d78b0a803ac2b6ae8acfba1c8"
+    sha256 arm:          "50d72b857f06915d14a87ad47aa38e3de7d97c2516b8f35d08677b74c434b9b4",
+           intel:        "9166057d7fd8f404884eee0704a4ca71ebdee5d7466095dc2d201d11382d4ea3",
+           arm64_linux:  "85bed4154116c2cd0fc39ad634031dde34ac8baed82714eba29114c5bd7bc50e",
+           x86_64_linux: "dad5d7a460e25165ea6cacfc64e71c3088f56ad6325fb4465d481044a517580d"
     "it-IT"
   end
   language "ja" do
-    sha256 arm:          "459c5cd2c2deb80d4020b9c0938d85374d8bb97bc744650879cd7739630af48b",
-           intel:        "d43caffaa28a5ad24fb15ab84e1a407775a637f4e5d9e82367691dcdd84e07f9",
-           arm64_linux:  "83f65df8f88fa2e3b583cdae773c4bfc0bea36e24ebae0b804dfad52d8df257b",
-           x86_64_linux: "2bc7e6296d39e409cfaf430436f93f52c32be344f2253cf7555091ee49fb527b"
+    sha256 arm:          "6d64d72c1111d72cf0b2f2fe6e03295fc5c686462afa045edf531dc03dd93d78",
+           intel:        "2532fd874b35f734dd0b10db1890f2ad42d74079b6b7215993a146b34b4ac568",
+           arm64_linux:  "2ec5718044fc673c8863300db2ed915975dc1a8173dc3166578f14f73f7c4289",
+           x86_64_linux: "f4d1a3f054139cfd5e153a195fbeea735238739a1486734c89ee97c7eb42576f"
     "ja-JP"
   end
   language "ko" do
-    sha256 arm:          "cf8f7aa5f107b96be118edc9ad085d3826b623049592dbdb60a84953961f7422",
-           intel:        "ea147654084f8ca1d92d5b4cc93b01a5c6c01c0bc6432edae22dd3b5a6062bb2",
-           arm64_linux:  "872c21fe6daf6467c8abc52d6c3a960ec3f4f852a537b3878fde62a53f476fec",
-           x86_64_linux: "fa85f1d8ce91b8b4269f7eebe401525961cf47a0d51999ab829a15447add2eaa"
+    sha256 arm:          "e9731e6b340d6b5b2583297c02b0c7d735e82c4fb321c2e05c392f154251c374",
+           intel:        "45023a3214481f25facb5e62950f1624985dcc24115adc0a1af0fa4adc0c6e32",
+           arm64_linux:  "c585de7f18275658ec793fcdfcaa3dba9bfb6fccfe05ad91fb898d826b7e1a3c",
+           x86_64_linux: "76372a2ae43edf16fb4db816cb30dece986c33248caa4760e8c1212eee3f23d3"
     "ko-KR"
   end
   language "pl" do
-    sha256 arm:          "b3699ca06b49f3fbb1d91e62f28253c9c812fcd528f2abe8552c74ea2ce1b369",
-           intel:        "627884409a372d7f9a29d48db5d17caf2b35e37dff9926bc403d7ae03536f97b",
-           arm64_linux:  "3dbdd4ba561d6dfa4f1fd7d756fcdcf4a9b74a33dcc415bd181908b6a2f30c80",
-           x86_64_linux: "f2a154544370ace6bd92cd35b504399ed2c088fd1ac3fdcfc478509347675268"
+    sha256 arm:          "0f57c959760cdd11f0b6601099ef4e152d40baf21d9e6d7c8d5ee6cc829be1d4",
+           intel:        "13b4f4b56af6dbe230f357ed3e281d2ff1931e41384b16d3f4ad01322457d76b",
+           arm64_linux:  "46ae1a261ced9a8719a50f4fafb6f6d97e9d2dbd86b4da2ce9c0e3c19f344f84",
+           x86_64_linux: "df8d2dd44eb7cf1e01e95af396b3827ef0c0865b64092a2f699cd016437ad771"
     "pl-PL"
   end
   language "pt", "BR" do
-    sha256 arm:          "ad72c96464aed14f736a72afd67ad33aca13dfb67dd83aedb3ef1a275b78303e",
-           intel:        "5926b011618dd8b265a58e57a67d7172e0a7b845480305017f3cbd283411ed41",
-           arm64_linux:  "ba58620ee98ce702c9bf0cba468509e597726a2bc44adddb43b0b5c166e7f165",
-           x86_64_linux: "c019b2df3376b9293b5057496429b3ad43387feca3249e3dac249a2c0ec1a3c7"
+    sha256 arm:          "ea8bf9f497333364045da7a59dfb001b5c31a95244d6caf89ae8c0ef140331bd",
+           intel:        "5f7ff0583948472f1ffb72bc3401e9677303a13a944cdc39a13891551262ad6c",
+           arm64_linux:  "4ee3549f85ba736326c4b48523954c548c7dc4e77bd782ba34423d148c7dcb44",
+           x86_64_linux: "81d43e99a1583eb07bba8b6d299d5530aeef7e4201442775b4dc7bf452edb1c0"
     "pt-BR"
   end
   language "ru" do
-    sha256 arm:          "eb5300383ff7c7fc4d108d5277931134d7ec5cc4f557a1db3f7d6aa4788b736b",
-           intel:        "1972dc5e737bbb20d8eaf4092bbf3601b67283d03e744e5193034fe3f59f68db",
-           arm64_linux:  "b9922815bdd98f505dc0eb131122548170a06af90a59c66e8f25dfdbbed657d9",
-           x86_64_linux: "98cf7d89029018fbc03b567bff94bf4d08a6db4370aa32da50e01c3a656e6042"
+    sha256 arm:          "e761ec51217413c047828cd01b3c56fb3022510e78c23d0ecefb1b470b4f7e8a",
+           intel:        "a04d2e5e6a5d39133ae9ea6ae61cd61d684e9fe7ccd6d1bf4b8b07d1eb2735ee",
+           arm64_linux:  "f90456b21bf110b3dfbac967144a7e79936483ca69d8e554605ba576c9736a2d",
+           x86_64_linux: "8c8b3dc0b36d4144b95cdf26871f8e6179486083cfa3fe1c8c50218ff658c76e"
     "ru-RU"
   end
   language "tr" do
-    sha256 arm:          "9014faec0aa2623851c9620ea5a3efbb0a271e6b95f1f391215bb47dc4e4e9b7",
-           intel:        "cbf0480362d2bbe5246d173e3b59bb314373a20037b65b2fcb9d5fbc53d5a054",
-           arm64_linux:  "f714bc1ce6e4677640158b4c9d9403362871bd48393fdff2117582ddcf481e33",
-           x86_64_linux: "0835c7462eccd5f47b97b2e3aeddfe4ae00ddcdfe43ca1b402c154badbd7e11b"
+    sha256 arm:          "c9821b5dcaab014fb06c2b55636ded5f2acbef234e230dbb2dc75e959be52d25",
+           intel:        "d7e06a267581c4b215fe3080d2eb088b51a26c156e6d8a2d3e075758b6fa1c41",
+           arm64_linux:  "3a964d6804b374b7623783b4d53acc955a4f651b18cb178a8433cce9069bf270",
+           x86_64_linux: "ce4ea66d9d646c60a583fb3c8e1dd2e8982cc23bec343d100d260b831f7cf7fa"
     "tr-TR"
   end
   language "zh", "CN", default: true do
-    sha256 arm:          "59c289e6330743ad65ba11c7cb10089dc05608d3752eda611a6acc13fc4b994a",
-           intel:        "deb645fa45b461fc1bada9ee875843e48f1240167ae04e7a3ecba7e46f487042",
-           arm64_linux:  "86d3811b63bf8c4bbce1f1552fc449fcc087991de256a5e83ee7fe5db037c783",
-           x86_64_linux: "7bf181532f97d0ca510fa5feb18eecee98511f1485e45b38c18a776d5a6c6358"
+    sha256 arm:          "045f42cbb6195c3ef2e217c279728d1db152fee6f64c9870cec144c93d2a79e6",
+           intel:        "39d6a769b97b29712db15f82460d7533bc93833561d1c286e72288205563cb84",
+           arm64_linux:  "44fa94613da91c4d11331ff1550decc05b9087113a7ee73938c0e1c260041aa6",
+           x86_64_linux: "c8f0b2f078db99474368f0fffac64ce55eaff9fe1c3c651aa8a003ba649225be"
     "zh-CN"
   end
   language "zh", "TW" do
-    sha256 arm:          "186072821e619650962e73b0ac55099332f4f8e50cf9ecdeede4c7057bc9070d",
-           intel:        "c89e17aa8261cd8bdc2a55aa03f817c88c059a9b36ae09da8bd1da14b8942e16",
-           arm64_linux:  "79dc2926a7308b4e5f6d23dc2d9855e908f7241b4621e777a5a1bbf65a7f34d9",
-           x86_64_linux: "068ea14a7312778f19a299401fdc495f062ed3b964b29f8a26798a515ab9bcbc"
+    sha256 arm:          "403fa7b2c80b38e435521fc5fc3d666b2c4216fd1660365a0d0629557e8d6505",
+           intel:        "5a610c5fc0bd70e8e414a1ddc570f62d868721dee72a37b30c5c86a4039192fa",
+           arm64_linux:  "24afd9fd10c54c42134fed765120cb6d70e204d02aa7719bea1946e775f29978",
+           x86_64_linux: "c1328d7cb323ad910455dc17966598429bc250091a37edeeee5f7b54225a36d7"
     "zh-TW"
   end
 
