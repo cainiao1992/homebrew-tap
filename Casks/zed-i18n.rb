@@ -116,9 +116,10 @@ cask "zed-i18n" do
     app "Zed i18n.app", target: "Zed.app"
     binary "#{appdir}/Zed.app/Contents/MacOS/cli", target: "zed"
 
-    # Strip debug symbols to shrink the binary on disk (mirrors zed-globalization's
-    # packaging, ~94 MB smaller). strip invalidates the app's code signature, so
-    # re-sign the bundle ad-hoc afterwards — otherwise macOS refuses to launch it.
+    # Strip debug symbols to shrink the binary on disk (~94 MB smaller).
+    # strip invalidates the app's code signature, so we must re-sign.
+    # Prefer a local Developer ID certificate (if available) over ad-hoc signing
+    # to preserve Keychain access permissions across updates.
     postflight do
       app = "#{appdir}/Zed.app"
       binary = "#{app}/Contents/MacOS/zed"
@@ -128,11 +129,17 @@ cask "zed-i18n" do
       system_command "strip", args: ["-x", binary] if File.exist?(binary)
       system_command "strip", args: ["-x", cli_binary] if File.exist?(cli_binary)
 
+      # Find any code signing certificate; fallback to ad-hoc ("-") if none exists.
+      # A fixed certificate preserves Keychain access permissions across updates.
+      security_output = system_command("security",
+                                       args: ["find-identity", "-v", "-p", "codesigning"]).stdout
+      cert_id = security_output.scan(/\(([A-Z0-9]+)\)/).flatten.first || "-"
+
       if File.exist?(entitlements)
         system_command "codesign",
-                       args: ["--force", "--deep", "--sign", "-", "--entitlements", entitlements, app]
+                       args: ["--force", "--deep", "--sign", cert_id, "--entitlements", entitlements, app]
       else
-        system_command "codesign", args: ["--force", "--deep", "--sign", "-", app]
+        system_command "codesign", args: ["--force", "--deep", "--sign", cert_id, app]
       end
     end
 
