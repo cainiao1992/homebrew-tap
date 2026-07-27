@@ -30,6 +30,15 @@ cask "imfile-desktop" do
       system_command "xattr",
                      args: ["-dr", "com.apple.quarantine", appdir/"imFile.app"]
     end
+
+    # macOS-only cleanup paths under ~/Library.
+    zap trash: [
+      "~/Library/Application Support/app.imfile.native",
+      "~/Library/Caches/app.imfile.native",
+      "~/Library/Logs/app.imfile.native",
+      "~/Library/Preferences/app.imfile.native.plist",
+      "~/Library/Saved Application State/app.imfile.native.savedState",
+    ]
   end
 
   on_linux do
@@ -42,14 +51,6 @@ cask "imfile-desktop" do
 
     url "https://github.com/imfile-io/imfile-desktop/releases/download/v#{version}/imFile-#{version}#{arch}.AppImage"
 
-    appimage "imFile-#{version}#{arch}.AppImage"
+    app_image "imFile-#{version}#{arch}.AppImage"
   end
-
-  zap trash: [
-    "~/Library/Application Support/app.imfile.native",
-    "~/Library/Caches/app.imfile.native",
-    "~/Library/Logs/app.imfile.native",
-    "~/Library/Preferences/app.imfile.native.plist",
-    "~/Library/Saved Application State/app.imfile.native.savedState",
-  ]
 end
