@@ -2,20 +2,20 @@ cask "zed-i18n" do
   arch arm: "aarch64", intel: "x86_64"
   os macos: "macos", linux: "linux"
 
-  version "1.12.0-i18n.1"
+  version "1.12.1-i18n.1"
 
   language "zh", "CN", default: true do
-    sha256 arm:          "2e829d9a5a1d6ee386ef04c856ea720a52ee7316e138b40592a4f11d77c538ca",
-           intel:        "66f4b3eab16fe6230071f3238f5c049b2df0073357ef985a6ad5026f12a8f8cb",
-           arm64_linux:  "6242f609c36b3f5af7641121a993fa9dde7e8375a6a2ba598748c2b0cb62ab50",
-           x86_64_linux: "0b4c64c1a290eef92392fee40e10cdd836ae42c9e0b51f01de5f031628b829be"
+    sha256 arm:          "41732c0aa8b7d1d0a7a2b92df938877b317ebca6f81e030447abe14195ecb9bf",
+           intel:        "41aeac91c5cdac6841202b1ff2458c1cd1c9d293f5c6258b444e84ee4e1c9147",
+           arm64_linux:  "30a511b2f6e5cb63dd8cbf1cb98e36ec845da6de1f774f43b7228abc1c5a8869",
+           x86_64_linux: "f7e6c78fc0ead95a18d9ba1f40baa2e531ba453e9195cdc30d742c9b2bc0d15a"
     "zh-CN"
   end
   language "zh", "TW" do
-    sha256 arm:          "975f1b2ab9b3ddf132dc456906975b010a937982a868df04f8b7aa0255ea62ae",
-           intel:        "c2a27bcdafba4bc16d5a67acbd41a46d86e29120e11263d3fea6c78a5273aa0d",
-           arm64_linux:  "d9ca8f9c7f472ec3547959143eff50e0c3a54dda34a1841b638dc0e0b3b0e8d7",
-           x86_64_linux: "ee60e6b7984b8837efedd4690bc98a59aad9188c142ccbb8e5f39cf56337c189"
+    sha256 arm:          "047dc512353fd7eae6b122bb17d075bd754426e9b45b92cc363dddf9fe028fd0",
+           intel:        "6ae8308745e6437210e3dc4c18e0bcdd1ad451e678c8794f9fd8cc1fb3df22e1",
+           arm64_linux:  "93b3f6ba4bc55d49f6c24a78a779ec57ea101d96657911ad830abe4cade89804",
+           x86_64_linux: "1477509e4440cee8d83ad9c569e28f6f660424856d52ba9d2172931ca5dede29"
     "zh-TW"
   end
 
