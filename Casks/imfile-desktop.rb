@@ -1,5 +1,5 @@
 cask "imfile-desktop" do
-  version "2.1.0"
+  version "2.2.0"
 
   name "imFile"
   desc "Full-featured download manager"
@@ -17,8 +17,8 @@ cask "imfile-desktop" do
     # "imFile-<version>-mac.zip" (Intel); both extract to "imFile.app".
     arch arm: "arm64-mac", intel: "mac"
 
-    sha256 arm:   "c3977986c2ca35f6db0ac8e6dad29a4c5e0c5462af2a3209798c8cf400d0f84a",
-           intel: "840da82a49424432844b9a681f8ac06a1386018c17ad426d272bfb0de4b71be8"
+    sha256 arm:   "befdb4c91f2b7ddb0c8ec0ceb4349376adb9ffd72c0fa83ce2a31873065df8c7",
+           intel: "705985041ca290e341eb39c2ed7bb538136bcd0d2091158a60720551d3536dca"
 
     url "https://github.com/imfile-io/imfile-desktop/releases/download/v#{version}/imFile-#{version}-#{arch}.zip"
 
@@ -44,10 +44,10 @@ cask "imfile-desktop" do
   on_linux do
     # Linux ships "imFile-<version>-arm64.AppImage" (aarch64) and
     # "imFile-<version>.AppImage" (x86_64).
-    arch arm: "arm64"
+    arch arm: "-arm64", intel: ""
 
-    sha256 arm:   "fadf85bd9c212601d056cef524b0c32758036d8ab66e4b05e8deba7c8dcf3e4b",
-           intel: "63fa8ebf19458b3ab0f70cffdaebd842bbd15121bcb16fd10da239f144acb4ab"
+    sha256 arm:   "9157b4d0e6ea76074add89fe3993aeca355f1723a6c5196552a52c26a0f79052",
+           intel: "de5d213fe9928f5b402bfd1c659d18da699dc1f8fa43ba04d7dd002741dcf131"
 
     url "https://github.com/imfile-io/imfile-desktop/releases/download/v#{version}/imFile-#{version}#{arch}.AppImage"
 
