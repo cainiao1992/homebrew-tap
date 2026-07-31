@@ -2,36 +2,7 @@ cask "zed-i18n" do
   arch arm: "aarch64", intel: "x86_64"
   os macos: "macos", linux: "linux"
 
-  version "1.12.1-i18n.1"
-
-  language "zh", "CN", default: true do
-    sha256 arm:          "41732c0aa8b7d1d0a7a2b92df938877b317ebca6f81e030447abe14195ecb9bf",
-           intel:        "41aeac91c5cdac6841202b1ff2458c1cd1c9d293f5c6258b444e84ee4e1c9147",
-           arm64_linux:  "30a511b2f6e5cb63dd8cbf1cb98e36ec845da6de1f774f43b7228abc1c5a8869",
-           x86_64_linux: "f7e6c78fc0ead95a18d9ba1f40baa2e531ba453e9195cdc30d742c9b2bc0d15a"
-    "zh-CN"
-  end
-  language "zh", "TW" do
-    sha256 arm:          "047dc512353fd7eae6b122bb17d075bd754426e9b45b92cc363dddf9fe028fd0",
-           intel:        "6ae8308745e6437210e3dc4c18e0bcdd1ad451e678c8794f9fd8cc1fb3df22e1",
-           arm64_linux:  "93b3f6ba4bc55d49f6c24a78a779ec57ea101d96657911ad830abe4cade89804",
-           x86_64_linux: "1477509e4440cee8d83ad9c569e28f6f660424856d52ba9d2172931ca5dede29"
-    "zh-TW"
-  end
-
-  # macOS ships "Zed-i18n-<lang>-macos-<arch>.dmg"; Linux ships "zed-i18n-<lang>-linux-<arch>.tar.gz".
-  url "https://github.com/LI-NA/zed-i18n/releases/download/v#{version}/" \
-      "#{on_macos { "Zed-i18n" } || "zed-i18n"}-#{language}-#{os}-#{arch}." \
-      "#{on_macos { "dmg" } || "tar.gz"}"
-  name "Zed"
-  desc "Localized build of the Zed editor"
-  homepage "https://github.com/LI-NA/zed-i18n"
-
-  livecheck do
-    url :homepage
-    strategy :github_latest
-    regex(/v?(\d+\.\d+\.\d+-i18n\.\d+)/i)
-  end
+  version "1.13.1-i18n.1"
 
   on_macos do
     # The DMG ships as "Zed i18n.app"; install it as "Zed.app" for consistency
@@ -74,8 +45,36 @@ cask "zed-i18n" do
       "~/Library/Saved Application State/dev.zed-i18n.Zed.savedState",
     ]
   end
-
   on_linux do
     binary "zed.app/bin/zed", target: "zed"
+  end
+
+  language "zh", "CN", default: true do
+    sha256 arm:          "5f29a3da4a28e6089c224336a78563f90166d147abfc6e0fa6536e1cdee7f3e5",
+           intel:        "9aea601248921ce55629a1b0ccdeec929eb383a47611f30690bcd89513fb8024",
+           arm64_linux:  "e5b29abdcef205c0b8da800d737fb761084a82ca725cec0c34670c79bedbb577",
+           x86_64_linux: "5d99f4f978db9996f5dd5034adde15a1d629f862caf92e694d8b6a8b1a8ce5ee"
+    "zh-CN"
+  end
+  language "zh", "TW" do
+    sha256 arm:          "503a9dd8a26245dc8bb09c10178aa20a2e6424a82049cbda75a843e2bb498483",
+           intel:        "32dc98e7b77bac185c7b03e7261d2b808c4b21541cf8485b167aba30d8076e0d",
+           arm64_linux:  "1a71444cad87647097b0abf51d0b1c9fe4062b0388b5652b767bb0be7d705ee8",
+           x86_64_linux: "1d77491058cbb551291330234a83870ea1861ac3df3b14c21733077f6d67a287"
+    "zh-TW"
+  end
+
+  # macOS ships "Zed-i18n-<lang>-macos-<arch>.dmg"; Linux ships "zed-i18n-<lang>-linux-<arch>.tar.gz".
+  url "https://github.com/LI-NA/zed-i18n/releases/download/v#{version}/" \
+      "#{on_macos { "Zed-i18n" } || "zed-i18n"}-#{language}-#{os}-#{arch}." \
+      "#{on_macos { "dmg" } || "tar.gz"}"
+  name "Zed"
+  desc "Localized build of the Zed editor"
+  homepage "https://github.com/LI-NA/zed-i18n"
+
+  livecheck do
+    url :homepage
+    strategy :github_latest
+    regex(/v?(\d+\.\d+\.\d+-i18n\.\d+)/i)
   end
 end
