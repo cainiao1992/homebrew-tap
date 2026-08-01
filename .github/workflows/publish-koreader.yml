@@ -5,13 +5,15 @@ name: Publish KOReader macOS
 #
 # 前置条件(一次性):
 #   1. 在本仓库 Settings → Secrets 配置 KOREADER_PAT:
-#      一个具备 actions:read 权限的 PAT，用于下载 koreader/koreader 的 artifact。
-#   2. 提交并推送本工作流，随后手动运行一次(或等待每周定时)即可生成 Release。
+#      一个 classic PAT 且勾选 repo scope。artifact 列表接口允许匿名读取，
+#      但下载接口要求 repo scope；public_repo 与 fine-grained PAT 均不足以下载
+#      外部仓库的 artifact。
+#   2. workflow_dispatch / schedule 仅在默认分支(main)上生效，本文件须先合入 main。
 #
-# 产物: 每个 KOReader 版本一个 tag(v<version>)，含两个资源:
+# 产物: 每个 KOReader 版本一个 tag(koreader_<version>)，含两个资源:
 #   KOReader-macos-arm64-v<version>.zip
 #   KOReader-macos-x86_64-v<version>.zip
-# 资源内含 KOReader.app(已重新打包为 zip，Homebrew cask 可直接 app "KOReader.app")。
+# 资源内含 KOReader.app(已由上游 .7z 重新打包为 zip，cask 可直接 app "KOReader.app")。
 
 on:
   workflow_dispatch:
@@ -58,43 +60,37 @@ jobs:
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
           set -euo pipefail
+          API="https://api.github.com/repos/$UPSTREAM/actions/artifacts"
           WORK="$(mktemp -d)"
           declare -A SUFFIX=( [arm64]=11.0-arm64 [x86_64]=10.15-x86_64 )
           for ARCH in arm64 x86_64; do
-            SUF="${SUFFIX[$ARCH]}"
-            echo "== 处理 $ARCH ($SUF) =="
-            ART_ID="$(curl -sSL -H "Authorization: Bearer $PAT" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/$UPSTREAM/actions/artifacts?per_page=100" \
-              | python3 - "$SUF" <<'PY'
-          import sys, json
-          suf = sys.argv[1]
-          d = json.loads(sys.stdin.read())
-          c = [a for a in d.get('artifacts', [])
-               if a['name'].startswith('koreader-macos-' + suf) and not a['expired']]
-          c.sort(key=lambda a: a.get('created_at', ''), reverse=True)
-          print(c[0]['id'] if c else '')
-          PY
-            )"
-            [ -n "$ART_ID" ] || { echo "未找到 $ARCH 产物"; exit 1; }
+            # 上游对每个 tag 恰好产出一个同名产物；nightly 构建名字带 git-describe
+            # 后缀(如 -v2026.07-9-g43a75b2_2026-07-31)，故必须精确匹配而非取最新。
+            NAME="koreader-macos-${SUFFIX[$ARCH]}-v$VERSION.7z"
+            echo "== $ARCH: $NAME =="
+            ART_ID="$(curl -fsSL -H "Authorization: Bearer $PAT" -H "Accept: application/vnd.github+json" --get --data-urlencode "name=$NAME" "$API" | python3 -c 'import sys,json; a=[x for x in json.load(sys.stdin).get("artifacts",[]) if not x["expired"]]; print(a[0]["id"] if a else "")')"
+            [ -n "$ART_ID" ] || { echo "::error::未找到未过期产物 $NAME (上游产物 90 天后过期)"; exit 1; }
 
-            curl -sSL -H "Authorization: Bearer $PAT" -L \
-              "https://api.github.com/repos/$UPSTREAM/actions/artifacts/$ART_ID/zip" \
-              -o "$WORK/art.zip"
-            rm -rf "$WORK/$ARCH" && mkdir -p "$WORK/$ARCH"
-            unzip -o -q "$WORK/art.zip" -d "$WORK/$ARCH"
-            INNER="$(find "$WORK/$ARCH" -name '*.7z' | head -n1)"
-            [ -n "$INNER" ] || { echo "未找到内层 .7z"; exit 1; }
-            7z x -y "-o$WORK/$ARCH" "$INNER" >/dev/null
-            APP="$(find "$WORK/$ARCH" -name KOReader.app -type d | head -n1)"
-            [ -n "$APP" ] || { echo "未找到 KOReader.app"; exit 1; }
+            SRC="$WORK/$ARCH.bin"
+            curl -fsSL -H "Authorization: Bearer $PAT" "$API/$ART_ID/zip" -o "$SRC"
+            DST="$WORK/$ARCH"
+            rm -rf "$DST" && mkdir -p "$DST"
+            # 该端点对本产物直接返回裸 .7z；若上游改为 zip 包裹则自动降级处理
+            if unzip -tq "$SRC" >/dev/null 2>&1; then
+              unzip -oq "$SRC" -d "$DST/outer"
+              SRC="$(find "$DST/outer" -name '*.7z' | head -n1)"
+              [ -n "$SRC" ] || { echo "::error::zip 内未找到 .7z"; exit 1; }
+            fi
+            7z x -y "-o$DST" "$SRC" >/dev/null
+            APP="$(find "$DST" -maxdepth 3 -name KOReader.app -type d | head -n1)"
+            [ -n "$APP" ] || { echo "::error::未找到 KOReader.app"; exit 1; }
 
-            ( cd "$(dirname "$APP")" \
-              && zip -r -q "$WORK/KOReader-macos-$ARCH-v$VERSION.zip" KOReader.app )
-            SHA="$(shasum -a 256 "$WORK/KOReader-macos-$ARCH-v$VERSION.zip" | awk '{print $1}')"
-            echo "asset_$ARCH=$WORK/KOReader-macos-$ARCH-v$VERSION.zip" >> "$GITHUB_OUTPUT"
+            ASSET="$WORK/KOReader-macos-$ARCH-v$VERSION.zip"
+            ( cd "$(dirname "$APP")" && zip -r -q -y "$ASSET" KOReader.app )
+            SHA="$(sha256sum "$ASSET" | awk '{print $1}')"
+            echo "asset_$ARCH=$ASSET" >> "$GITHUB_OUTPUT"
             echo "sha_$ARCH=$SHA" >> "$GITHUB_OUTPUT"
-            echo "$ARCH -> KOReader-macos-$ARCH-v$VERSION.zip  sha256:$SHA"
+            echo "$ARCH -> $(basename "$ASSET")  sha256:$SHA"
           done
 
       - name: 创建/更新 Release 并上传
@@ -104,12 +100,14 @@ jobs:
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
           set -euo pipefail
-          if gh release view "$TAG" >/dev/null 2>&1; then
+          # 本 job 未 checkout，gh 无法从 git remote 推断仓库，所有调用必须显式 --repo
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Release $TAG 已存在，更新资源"
           else
+            NOTES="$(printf '自动重新托管 KOReader %s 的 macOS 构建。上游: %s。\n\n二进制为 ad-hoc 签名、未经公证，首次启动需在「系统设置 → 隐私与安全性」中点击「仍要打开」；\n通过本 tap 的 cask 安装会自动剥离隔离属性，无需手动处理。' "$VERSION" "$UPSTREAM")"
             gh release create "$TAG" \
               --title "KOReader $VERSION (macOS)" \
-              --notes "自动重新托管 KOReader $VERSION 的 macOS 构建。上游: $UPSTREAM。\n二进制未经签名/公证，首次启动需在「系统设置 → 隐私与安全性」中点击「仍要打开」。" \
+              --notes "$NOTES" \
               --repo "$GITHUB_REPOSITORY"
           fi
           gh release upload "$TAG" \
