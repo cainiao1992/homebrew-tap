@@ -1,0 +1,121 @@
+name: Publish KOReader macOS
+
+# 将 KOReader 上游 macOS 构建(仅以 GitHub Actions artifact 形式分发、需登录且 90 天过期)
+# 重新打包为公开、长期有效的 Release 资源，供本 tap 的 cask / 安装脚本使用。
+#
+# 前置条件(一次性):
+#   1. 在本仓库 Settings → Secrets 配置 KOREADER_PAT:
+#      一个具备 actions:read 权限的 PAT，用于下载 koreader/koreader 的 artifact。
+#   2. 提交并推送本工作流，随后手动运行一次(或等待每周定时)即可生成 Release。
+#
+# 产物: 每个 KOReader 版本一个 tag(v<version>)，含两个资源:
+#   KOReader-macos-arm64-v<version>.zip
+#   KOReader-macos-x86_64-v<version>.zip
+# 资源内含 KOReader.app(已重新打包为 zip，Homebrew cask 可直接 app "KOReader.app")。
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "KOReader 版本 (如 2026.07)，留空则取上游最新 release"
+        required: false
+        default: ""
+  schedule:
+    # 每周一 04:17 UTC 检查上游是否有新版本
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: write
+
+env:
+  UPSTREAM: koreader/koreader
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 安装依赖
+        run: sudo apt-get update && sudo apt-get install -y p7zip-full unzip
+
+      - name: 解析版本
+        id: meta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="$(gh release view --repo "$UPSTREAM" --json tagName -q .tagName | sed 's/^v//')"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=koreader_$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: 抓取并重新打包各架构
+        id: pkg
+        env:
+          PAT: ${{ secrets.KOREADER_PAT }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          WORK="$(mktemp -d)"
+          declare -A SUFFIX=( [arm64]=11.0-arm64 [x86_64]=10.15-x86_64 )
+          for ARCH in arm64 x86_64; do
+            SUF="${SUFFIX[$ARCH]}"
+            echo "== 处理 $ARCH ($SUF) =="
+            ART_ID="$(curl -sSL -H "Authorization: Bearer $PAT" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$UPSTREAM/actions/artifacts?per_page=100" \
+              | python3 - "$SUF" <<'PY'
+          import sys, json
+          suf = sys.argv[1]
+          d = json.loads(sys.stdin.read())
+          c = [a for a in d.get('artifacts', [])
+               if a['name'].startswith('koreader-macos-' + suf) and not a['expired']]
+          c.sort(key=lambda a: a.get('created_at', ''), reverse=True)
+          print(c[0]['id'] if c else '')
+          PY
+            )"
+            [ -n "$ART_ID" ] || { echo "未找到 $ARCH 产物"; exit 1; }
+
+            curl -sSL -H "Authorization: Bearer $PAT" -L \
+              "https://api.github.com/repos/$UPSTREAM/actions/artifacts/$ART_ID/zip" \
+              -o "$WORK/art.zip"
+            rm -rf "$WORK/$ARCH" && mkdir -p "$WORK/$ARCH"
+            unzip -o -q "$WORK/art.zip" -d "$WORK/$ARCH"
+            INNER="$(find "$WORK/$ARCH" -name '*.7z' | head -n1)"
+            [ -n "$INNER" ] || { echo "未找到内层 .7z"; exit 1; }
+            7z x -y "-o$WORK/$ARCH" "$INNER" >/dev/null
+            APP="$(find "$WORK/$ARCH" -name KOReader.app -type d | head -n1)"
+            [ -n "$APP" ] || { echo "未找到 KOReader.app"; exit 1; }
+
+            ( cd "$(dirname "$APP")" \
+              && zip -r -q "$WORK/KOReader-macos-$ARCH-v$VERSION.zip" KOReader.app )
+            SHA="$(shasum -a 256 "$WORK/KOReader-macos-$ARCH-v$VERSION.zip" | awk '{print $1}')"
+            echo "asset_$ARCH=$WORK/KOReader-macos-$ARCH-v$VERSION.zip" >> "$GITHUB_OUTPUT"
+            echo "sha_$ARCH=$SHA" >> "$GITHUB_OUTPUT"
+            echo "$ARCH -> KOReader-macos-$ARCH-v$VERSION.zip  sha256:$SHA"
+          done
+
+      - name: 创建/更新 Release 并上传
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG 已存在，更新资源"
+          else
+            gh release create "$TAG" \
+              --title "KOReader $VERSION (macOS)" \
+              --notes "自动重新托管 KOReader $VERSION 的 macOS 构建。上游: $UPSTREAM。\n二进制未经签名/公证，首次启动需在「系统设置 → 隐私与安全性」中点击「仍要打开」。" \
+              --repo "$GITHUB_REPOSITORY"
+          fi
+          gh release upload "$TAG" \
+            "${{ steps.pkg.outputs.asset_arm64 }}" \
+            "${{ steps.pkg.outputs.asset_x86_64 }}" \
+            --clobber --repo "$GITHUB_REPOSITORY"
+          echo "已发布: https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"
+          echo "sha256 arm64  : ${{ steps.pkg.outputs.sha_arm64 }}"
+          echo "sha256 x86_64 : ${{ steps.pkg.outputs.sha_x86_64 }}"
