@@ -46,8 +46,10 @@ cask "imfile-desktop" do
     # "imFile-<version>.AppImage" (x86_64).
     arch arm: "-arm64", intel: ""
 
-    sha256 arm:   "9157b4d0e6ea76074add89fe3993aeca355f1723a6c5196552a52c26a0f79052",
-           intel: "de5d213fe9928f5b402bfd1c659d18da699dc1f8fa43ba04d7dd002741dcf131"
+    # Linux checksums must use the `*_linux` keys; `arm:`/`intel:` only apply to
+    # macOS, which would leave `sha256` nil on Linux and break `brew bump-cask-pr`.
+    sha256 arm64_linux:  "9157b4d0e6ea76074add89fe3993aeca355f1723a6c5196552a52c26a0f79052",
+           x86_64_linux: "de5d213fe9928f5b402bfd1c659d18da699dc1f8fa43ba04d7dd002741dcf131"
 
     url "https://github.com/imfile-io/imfile-desktop/releases/download/v#{version}/imFile-#{version}#{arch}.AppImage"
 
