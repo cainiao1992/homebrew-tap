@@ -1,24 +1,13 @@
 cask "imfile-desktop" do
-  version "2.2.0"
-
-  name "imFile"
-  desc "Full-featured download manager"
-  homepage "https://github.com/imfile-io/imfile-desktop"
-
-  livecheck do
-    url :homepage
-    strategy :github_latest
-  end
-
-  depends_on macos: :monterey
+  version "2.2.1"
 
   on_macos do
     # macOS ships "imFile-<version>-arm64-mac.zip" (Apple Silicon) and
     # "imFile-<version>-mac.zip" (Intel); both extract to "imFile.app".
     arch arm: "arm64-mac", intel: "mac"
 
-    sha256 arm:   "befdb4c91f2b7ddb0c8ec0ceb4349376adb9ffd72c0fa83ce2a31873065df8c7",
-           intel: "705985041ca290e341eb39c2ed7bb538136bcd0d2091158a60720551d3536dca"
+    sha256 arm:   "18b67aec2bc96fe6d125980401e47707d63e44a8c05b378839f3f6db8d92b6e2",
+           intel: "d997653f4787695153fa91638ed42064d98d45f99b5f0e34fb1cfa05febcc080"
 
     url "https://github.com/imfile-io/imfile-desktop/releases/download/v#{version}/imFile-#{version}-#{arch}.zip"
 
@@ -40,19 +29,29 @@ cask "imfile-desktop" do
       "~/Library/Saved Application State/app.imfile.native.savedState",
     ]
   end
-
   on_linux do
     # Linux ships "imFile-<version>-arm64.AppImage" (aarch64) and
     # "imFile-<version>.AppImage" (x86_64).
-    arch arm: "-arm64", intel: ""
+    arch arm: "-arm64"
 
     # Linux checksums must use the `*_linux` keys; `arm:`/`intel:` only apply to
     # macOS, which would leave `sha256` nil on Linux and break `brew bump-cask-pr`.
-    sha256 arm64_linux:  "9157b4d0e6ea76074add89fe3993aeca355f1723a6c5196552a52c26a0f79052",
-           x86_64_linux: "de5d213fe9928f5b402bfd1c659d18da699dc1f8fa43ba04d7dd002741dcf131"
+    sha256 arm64_linux:  "8ad590021cf88b5aa0de5acf671beaca6cc7e510efd34a366b806320cd48b22c",
+           x86_64_linux: "928ed027a326f7f931b3d2c61c3bcff2b44e1e1203f446149b7556fc37da7ce0"
 
     url "https://github.com/imfile-io/imfile-desktop/releases/download/v#{version}/imFile-#{version}#{arch}.AppImage"
 
     app_image "imFile-#{version}#{arch}.AppImage"
   end
+
+  name "imFile"
+  desc "Full-featured download manager"
+  homepage "https://github.com/imfile-io/imfile-desktop"
+
+  livecheck do
+    url :homepage
+    strategy :github_latest
+  end
+
+  depends_on macos: :monterey
 end
