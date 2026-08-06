@@ -2,7 +2,7 @@ cask "zed-i18n" do
   arch arm: "aarch64", intel: "x86_64"
   os macos: "macos", linux: "linux"
 
-  version "1.13.1-i18n.1"
+  version "1.13.2-i18n.1"
 
   on_macos do
     # The DMG ships as "Zed i18n.app"; install it as "Zed.app" for consistency
@@ -50,17 +50,17 @@ cask "zed-i18n" do
   end
 
   language "zh", "CN", default: true do
-    sha256 arm:          "5f29a3da4a28e6089c224336a78563f90166d147abfc6e0fa6536e1cdee7f3e5",
-           intel:        "9aea601248921ce55629a1b0ccdeec929eb383a47611f30690bcd89513fb8024",
-           arm64_linux:  "e5b29abdcef205c0b8da800d737fb761084a82ca725cec0c34670c79bedbb577",
-           x86_64_linux: "5d99f4f978db9996f5dd5034adde15a1d629f862caf92e694d8b6a8b1a8ce5ee"
+    sha256 arm:          "ec1eabce94e346efe5edee5566e6e0efb1ea844c8393b95c192ec3e6631b4994",
+           intel:        "91d597bf9b994695dc561f4521f78d134ae8b8028cc4d1888bf00ca33a824a98",
+           arm64_linux:  "c5607baa29fb7bfc8787fda73b168d0f680bdadf575b290507b5ae2b5ba68d9c",
+           x86_64_linux: "1b23ba9e18891d29c71f9233394cc590e5cc482fe0e103597f8fbc793ee269ab"
     "zh-CN"
   end
   language "zh", "TW" do
-    sha256 arm:          "503a9dd8a26245dc8bb09c10178aa20a2e6424a82049cbda75a843e2bb498483",
-           intel:        "32dc98e7b77bac185c7b03e7261d2b808c4b21541cf8485b167aba30d8076e0d",
-           arm64_linux:  "1a71444cad87647097b0abf51d0b1c9fe4062b0388b5652b767bb0be7d705ee8",
-           x86_64_linux: "1d77491058cbb551291330234a83870ea1861ac3df3b14c21733077f6d67a287"
+    sha256 arm:          "905b4ce0c3eaac79899235901b9a53df7673b7a894959637dc10695bb103ced7",
+           intel:        "4e7807807c0504d0e1bc28a78c9ae62e4b4f6b740fa32170b53fc77c8be6fb61",
+           arm64_linux:  "e1b2503810456f6c573de4543487b304bbed3c1cc893eedf0fd9e82dd872580a",
+           x86_64_linux: "33555891fe284caad32fda6203fc062b3f7c099046560e5bb930c3175c4ee342"
     "zh-TW"
   end
 
