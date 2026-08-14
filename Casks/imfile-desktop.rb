@@ -1,13 +1,13 @@
 cask "imfile-desktop" do
-  version "2.3.2"
+  version "2.3.4"
 
   on_macos do
     # macOS ships "imFile-<version>-arm64-mac.zip" (Apple Silicon) and
     # "imFile-<version>-mac.zip" (Intel); both extract to "imFile.app".
     arch arm: "arm64-mac", intel: "mac"
 
-    sha256 arm:   "4d23801e69e0102b015910feb853179fb80a2a76fbb5904bdbd171d0da848c34",
-           intel: "44cbd8ac0dcff7579282193c8c57e3382e16022e6a512e10e1e4c6f719cc4d65"
+    sha256 arm:   "b588c862488ae2d7c3772456305d91f757de90305749a368caad3305f21c41d6",
+           intel: "8a3fd4be1a16f7d39fd79f63b14e375d4ecb7cf07d835e26fc109360d0a006e1"
 
     url "https://github.com/imfile-io/imfile-desktop/releases/download/v#{version}/imFile-#{version}-#{arch}.zip"
 
