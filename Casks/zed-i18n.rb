@@ -2,7 +2,14 @@ cask "zed-i18n" do
   arch arm: "aarch64", intel: "x86_64"
   os macos: "macos", linux: "linux"
 
-  version "1.15.0-i18n.1"
+  version "1.15.0-i18n.2"
+  # As of 1.15.0-i18n.2 upstream ships language-agnostic universal builds
+  # ("Zed-i18n-macos-<arch>.dmg" / "zed-i18n-linux-<arch>.tar.gz") that bundle
+  # all locales, so the previous per-language assets are gone.
+  sha256 arm:          "b065ec7730f5df532f9b7d4578eacb9d7041968bacc4f65189ef669885e1cab6",
+         intel:        "d3ac623f4b52558cb1efdb273ef95bfa407ebef46d7f8db6e9b3e2d9ec8eee1f",
+         arm64_linux:  "371ae552d6d89c1f5203b2f8997e00273ff4d8553ffb037b989c75d26116179a",
+         x86_64_linux: "4dda0e9d0e4aa9f613e816d3e96c4a0c84f24aef3818c19379dcadc27db38e29"
 
   on_macos do
     # The DMG ships as "Zed i18n.app"; install it as "Zed.app" for consistency
@@ -49,24 +56,9 @@ cask "zed-i18n" do
     binary "zed.app/bin/zed", target: "zed"
   end
 
-  language "zh", "CN", default: true do
-    sha256 arm:          "7d1a686e01a7738df7c474c535262c4cde0bf8afc300ab7cafee6a27409f2547",
-           intel:        "0cee1a1f3d38f174ea19320e80c4ac9a14b0b597c30fe27f3e4ceadc6fef45b7",
-           arm64_linux:  "40b59ec4d99eecd0f8d98b2c0eb2e78dc7b7b4ffa2f42ce20f6d84548932a57b",
-           x86_64_linux: "e0b37b24e301bfb25d023ff80676c880144435c945c716a871f3662658a7a6a9"
-    "zh-CN"
-  end
-  language "zh", "TW" do
-    sha256 arm:          "adebaa981eefa671498984e78c44499836bdeba1e3f4de9b0e7b5e0920098495",
-           intel:        "9d04017eec222639f5c8605c3722d22292d61848c9b86e3f61e00171da47c0d9",
-           arm64_linux:  "e82b494023256f4c0aba4cada1d3ebc1dd121af3dc72a0a0adaab3ddc3256c04",
-           x86_64_linux: "e49ad48453e70a029e05e0bd1010f9d1931ddaaeaf2c09ea32fe237dea67edee"
-    "zh-TW"
-  end
-
-  # macOS ships "Zed-i18n-<lang>-macos-<arch>.dmg"; Linux ships "zed-i18n-<lang>-linux-<arch>.tar.gz".
+  # macOS ships "Zed-i18n-macos-<arch>.dmg"; Linux ships "zed-i18n-linux-<arch>.tar.gz".
   url "https://github.com/LI-NA/zed-i18n/releases/download/v#{version}/" \
-      "#{on_macos { "Zed-i18n" } || "zed-i18n"}-#{language}-#{os}-#{arch}." \
+      "#{on_macos { "Zed-i18n" } || "zed-i18n"}-#{os}-#{arch}." \
       "#{on_macos { "dmg" } || "tar.gz"}"
   name "Zed"
   desc "Localized build of the Zed editor"
