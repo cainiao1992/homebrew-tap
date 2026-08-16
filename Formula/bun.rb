@@ -42,7 +42,7 @@ class Bun < Formula
     generate_completions_from_executable(bin/"bun", "completions")
   end
 
-  test do
+  def test
     assert_match version.to_s, shell_output("#{bin}/bun -v")
   end
 end
