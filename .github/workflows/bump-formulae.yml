@@ -84,6 +84,12 @@ jobs:
                 "$name"; then
                 FAILED+=("$name")
               fi
+            elif grep -qE '^\s+(if OS\.mac\?|on_macos|on_linux)' "Formula/$name.rb"; then
+              # Multi-variant formula: `brew bump-formula-pr` only rewrites the
+              # root `url`/`sha256`, leaving per-platform overrides stale.
+              if ! brew ruby .github/scripts/bump-formula.rb "$name" "$version"; then
+                FAILED+=("$name")
+              fi
             elif ! brew bump-formula-pr \
               --no-fork \
               --no-browse \

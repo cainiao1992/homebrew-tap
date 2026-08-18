@@ -1,7 +1,9 @@
 class Bun < Formula
   desc "Incredibly fast JavaScript runtime, bundler, transpiler and package manager"
   homepage "https://bun.sh/"
+  url "https://github.com/oven-sh/bun/releases/download/bun-v#{version}/bun-linux-x64.zip"
   version "1.3.14"
+  sha256 "951ee2aee855f08595aeec6225226a298d3fea83a3dcd6465c09cbccdf7e848f" # bun-linux-x64.zip
   license "MIT"
 
   livecheck do
@@ -9,6 +11,9 @@ class Bun < Formula
     strategy :github_latest
   end
 
+  # Primary (Linux x86_64) build. `brew bump-formula-pr` requires a root
+  # `url`/`sha256` stanza; the per-platform overrides below take precedence
+  # when their conditions match.
   if OS.mac?
     if Hardware::CPU.arm? || Hardware::CPU.in_rosetta2?
       url "https://github.com/oven-sh/bun/releases/download/bun-v#{version}/bun-darwin-aarch64.zip"
@@ -42,7 +47,7 @@ class Bun < Formula
     generate_completions_from_executable(bin/"bun", "completions")
   end
 
-  def test
+  test do
     assert_match version.to_s, shell_output("#{bin}/bun -v")
   end
 end
