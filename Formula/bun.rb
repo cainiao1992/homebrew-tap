@@ -2,8 +2,8 @@ class Bun < Formula
   desc "Incredibly fast JavaScript runtime, bundler, transpiler and package manager"
   homepage "https://bun.sh/"
   url "https://github.com/oven-sh/bun/releases/download/bun-v#{version}/bun-linux-x64.zip"
-  version "1.3.14"
-  sha256 "951ee2aee855f08595aeec6225226a298d3fea83a3dcd6465c09cbccdf7e848f" # bun-linux-x64.zip
+  version "1.4.0"
+  sha256 "2d03fb5fb83ac8b567aca0a281b2ce1a1a19d488f56c2968d88c3f25e92fe452" # bun-linux-x64.zip
   license "MIT"
 
   livecheck do
