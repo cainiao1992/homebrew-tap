@@ -31,21 +31,21 @@ case "$(uname -s)-$(uname -m)" in
 esac
 
 case "$os" in
-  darwin) CA_BUNDLE=/etc/ssl/cert.pem ;;
-  linux)  CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt ;;
+  darwin) CA_BUNDLE=/etc/ssl/cert.pem; CURLBIN=/usr/bin/curl ;;
+  linux)  CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt; CURLBIN=curl ;;
 esac
-
-export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
-export CPPFLAGS="-I$PREFIX/include"
-export LDFLAGS="-L$PREFIX/lib"
 
 fetch() { # fetch <filename> <url>
   local file="$SRC/$1" url="$2"
   if [ ! -f "$file" ]; then
     echo "== downloading $1"
-    curl -fL --retry 3 -o "$file" "$url"
+    "$CURLBIN" -fL --retry 3 -o "$file" "$url"
   fi
 }
+
+export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
+export CPPFLAGS="-I$PREFIX/include"
+export LDFLAGS="-L$PREFIX/lib"
 
 extract() { # extract <tarball> [strip-level]
   local tarball="$1" strip="${2:-1}" dir
@@ -59,18 +59,8 @@ extract() { # extract <tarball> [strip-level]
 
 echo "== versions: curl=$CURL_VERSION openssl=$OPENSSL_VERSION nghttp2=$NGHTTP2_VERSION ngtcp2=$NGTCP2_VERSION nghttp3=$NGHTTP3_VERSION brotli=$BROTLI_VERSION zstd=$ZSTD_VERSION"
 
-# GitHub x64 runners ship Homebrew openssl@3 whose 3.x headers (no ECH API) sit
-# in /usr/local/include and can shadow our 4.0.2 build. CI-only: never touch the
-# local machine's brew packages.
-if [ "${GITHUB_ACTIONS:-}" = true ] && [ "$(uname -s)" = Darwin ] && command -v brew >/dev/null; then
-  brew uninstall --ignore-dependencies openssl@3 openssl@1.1 >/dev/null 2>&1 || true
-  if [ -e /usr/local/include/openssl ] || [ -e /opt/homebrew/include/openssl ]; then
-    echo "ERROR: Homebrew openssl headers still present" >&2
-    exit 1
-  fi
-fi
-
-# --- fetch sources -----------------------------------------------------------
+# --- fetch sources (before uninstalling Homebrew openssl: runner's brew curl
+# links against it and would break) -------------------------------------------
 fetch "curl-$CURL_VERSION.tar.xz" \
   "https://github.com/curl/curl/releases/download/curl-${CURL_VERSION//./_}/curl-$CURL_VERSION.tar.xz"
 fetch "openssl-$OPENSSL_VERSION.tar.gz" \
@@ -85,6 +75,17 @@ fetch "brotli-$BROTLI_VERSION.tar.gz" \
   "https://github.com/google/brotli/archive/refs/tags/v$BROTLI_VERSION.tar.gz"
 fetch "zstd-$ZSTD_VERSION.tar.gz" \
   "https://github.com/facebook/zstd/releases/download/v$ZSTD_VERSION/zstd-$ZSTD_VERSION.tar.gz"
+
+# GitHub x64 runners ship Homebrew openssl@3 whose 3.x headers (no ECH API) sit
+# in /usr/local/include and can shadow our 4.0.2 build. CI-only: never touch the
+# local machine's brew packages.
+if [ "${GITHUB_ACTIONS:-}" = true ] && [ "$(uname -s)" = Darwin ] && command -v brew >/dev/null; then
+  brew uninstall --ignore-dependencies openssl@3 openssl@1.1 >/dev/null 2>&1 || true
+  if [ -e /usr/local/include/openssl ] || [ -e /opt/homebrew/include/openssl ]; then
+    echo "ERROR: Homebrew openssl headers still present" >&2
+    exit 1
+  fi
+fi
 
 # --- OpenSSL (static; ECH + QUIC are in 4.0.x mainline) ----------------------
 openssl_dir=$(extract "$SRC/openssl-$OPENSSL_VERSION.tar.gz")
