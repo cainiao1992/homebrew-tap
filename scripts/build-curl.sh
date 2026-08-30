@@ -59,6 +59,17 @@ extract() { # extract <tarball> [strip-level]
 
 echo "== versions: curl=$CURL_VERSION openssl=$OPENSSL_VERSION nghttp2=$NGHTTP2_VERSION ngtcp2=$NGTCP2_VERSION nghttp3=$NGHTTP3_VERSION brotli=$BROTLI_VERSION zstd=$ZSTD_VERSION"
 
+# GitHub x64 runners ship Homebrew openssl@3 whose 3.x headers (no ECH API) sit
+# in /usr/local/include and can shadow our 4.0.2 build. CI-only: never touch the
+# local machine's brew packages.
+if [ "${GITHUB_ACTIONS:-}" = true ] && [ "$(uname -s)" = Darwin ] && command -v brew >/dev/null; then
+  brew uninstall --ignore-dependencies openssl@3 openssl@1.1 >/dev/null 2>&1 || true
+  if [ -e /usr/local/include/openssl ] || [ -e /opt/homebrew/include/openssl ]; then
+    echo "ERROR: Homebrew openssl headers still present" >&2
+    exit 1
+  fi
+fi
+
 # --- fetch sources -----------------------------------------------------------
 fetch "curl-$CURL_VERSION.tar.xz" \
   "https://github.com/curl/curl/releases/download/curl-${CURL_VERSION//./_}/curl-$CURL_VERSION.tar.xz"
@@ -148,9 +159,18 @@ fi
 ls "$PREFIX"/lib/*.dylib "$PREFIX"/lib/*.so 2>/dev/null \
   && { echo "ERROR: shared libs found in $PREFIX/lib" >&2; exit 1; } || true
 
+# The 4.0.2 headers must expose the ECH API end to end; a missing piece here
+# means a foreign openssl header set is shadowing ours.
+grep -q "OSSL_ECHSTORE" "$PREFIX/include/openssl/types.h" \
+  || { echo "ERROR: $PREFIX/include/openssl/types.h lacks ECH typedef" >&2; exit 1; }
+grep -q "define SSL_OP_ECH_GREASE" "$PREFIX/include/openssl/ssl.h" \
+  || { echo "ERROR: $PREFIX/include/openssl/ssl.h lacks ECH options" >&2; exit 1; }
+grep -q "OSSL_ECHSTORE_new" "$PREFIX/include/openssl/ech.h" \
+  || { echo "ERROR: $PREFIX/include/openssl/ech.h incomplete" >&2; exit 1; }
+
 curl_dir=$(extract "$SRC/curl-$CURL_VERSION.tar.xz")
 echo "== building curl $CURL_VERSION"
-(cd "$curl_dir" \
+if ! (cd "$curl_dir" \
   && ./configure --prefix="$PAYLOAD" \
     --with-openssl="$PREFIX" \
     --enable-ech \
@@ -165,12 +185,17 @@ echo "== building curl $CURL_VERSION"
     --without-libpsl \
     --without-libidn2 \
     --without-libssh2 \
-    --without-librtmp \
     --disable-ldap --disable-ldaps \
     --disable-shared --enable-static \
     LDFLAGS="$LDFLAGS -Wl,-search_paths_first" \
   && make -j"$JOBS" \
-  && make install)
+  && make install); then
+  echo "== diagnostics: curl lib CPPFLAGS" >&2
+  grep -E "^CPPFLAGS" "$curl_dir/lib/Makefile" 2>/dev/null | head -3 >&2
+  echo "== diagnostics: config.log ECH probe" >&2
+  grep -B2 -A10 "set1_ech_config_list" "$curl_dir/config.log" 2>/dev/null | tail -30 >&2
+  exit 1
+fi
 
 # --- sanity checks ----------------------------------------------------------
 CURL_BIN="$PAYLOAD/bin/curl"
