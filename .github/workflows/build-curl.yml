@@ -1,0 +1,114 @@
+name: Build curl (ECH)
+
+# Builds a static curl with ECH and other experimental features, publishes the
+# tarballs as a GitHub release and rewrites Formula/curl.rb to pick them up.
+
+on:
+  workflow_dispatch:
+    inputs:
+      curl_version:
+        description: "curl version to build (e.g. 8.21.0); defaults to the latest upstream release"
+        required: false
+      ech_seq:
+        description: "build number appended to the version (x.y.z-ech.N)"
+        required: false
+        default: "1"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      curl_version: ${{ steps.resolve.outputs.curl_version }}
+      ech_seq: ${{ inputs.ech_seq || '1' }}
+    steps:
+      - id: resolve
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.curl_version }}" ]; then
+            V="${{ inputs.curl_version }}"
+          else
+            V=$(curl -fsSL https://api.github.com/repos/curl/curl/releases/latest | jq -r '.tag_name' | sed -e 's/^curl-//' -e 's/_/./g')
+          fi
+          echo "curl_version=$V" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: macos-15, arch: arm64 }
+          - { runner: macos-15-intel, arch: x64 }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build static curl
+        run: |
+          set -euo pipefail
+          WORK="$RUNNER_TEMP/curl-build" scripts/build-curl.sh
+
+      - name: ECH smoke test
+        run: |
+          set -euo pipefail
+          WORK="$RUNNER_TEMP/curl-build"
+          mkdir "$WORK/smoke"
+          tar -xzf "$WORK"/curl-*-darwin-${{ matrix.arch }}.tar.gz -C "$WORK/smoke"
+          "$WORK/smoke/bin/curl" --version
+          "$WORK/smoke/bin/curl" --doh-url https://one.one.one.one/dns-query --ech true \
+            -sS https://crypto.cloudflare.com/cdn-cgi/trace | grep "sni=encrypted"
+
+      - name: Upload tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.arch }}
+          path: ${{ runner.temp }}/curl-build/curl-*-darwin-${{ matrix.arch }}.tar.gz
+          if-no-files-found: error
+
+  release:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: curl-${{ needs.version.outputs.curl_version }}-ech.${{ needs.version.outputs.ech_seq }}
+        run: |
+          set -euo pipefail
+          cd dist
+          gh release create "$TAG" \
+            --title "curl $TAG" \
+            --notes "Static curl ${{ needs.version.outputs.curl_version }} with ECH, HTTPS RR and HTTP/3 enabled." \
+            curl-*-darwin-arm64.tar.gz curl-*-darwin-x64.tar.gz
+
+      - name: Rewrite Formula/curl.rb
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.version.outputs.curl_version }}-ech.${{ needs.version.outputs.ech_seq }}"
+          SHA_ARM64=$(sha256sum dist/curl-*-darwin-arm64.tar.gz | cut -d' ' -f1)
+          SHA_X64=$(sha256sum dist/curl-*-darwin-x64.tar.gz | cut -d' ' -f1)
+          ruby .github/scripts/update-curl-formula.rb "$VERSION" "$SHA_ARM64" "$SHA_X64"
+
+      - name: Commit formula
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/curl.rb
+          git commit -m "curl ${{ needs.version.outputs.curl_version }}-ech.${{ needs.version.outputs.ech_seq }}"
+          git pull --rebase origin main
+          git push origin main
