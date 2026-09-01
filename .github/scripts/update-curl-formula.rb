@@ -16,8 +16,14 @@ content = File.read(path)
 content.sub!(/^  version ".*"$/, %Q{  version "#{version}"}) ||
   raise("version line not found in #{path}")
 
+# The urls spell out the version (DSL interpolation cannot be used: url is
+# evaluated before the version line runs), so rewrite them in lockstep.
+content.gsub!(/curl-[\d.]+-ech\.\d+(?=\/|-darwin)/, "curl-#{version}") ||
+  raise("no versioned release urls found in #{path}")
+
 sha_by_arch = { arm64: sha_arm64, x64: sha_x64 }
-arch = nil
+# The root spec doubles as the darwin-arm64 build, so it maps to the arm64 sha.
+arch = :arm64
 content = content.lines.map { |line|
   arch = :arm64 if line.include?("on_arm do")
   arch = :x64 if line.include?("on_intel do")
