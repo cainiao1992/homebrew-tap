@@ -15,9 +15,8 @@ cask "imfile-desktop" do
 
     # The upstream release is ad-hoc signed; without removing the Homebrew
     # quarantine attribute macOS reports the bundle as "damaged".
-    postflight do
-      system_command "xattr",
-                     args: ["-dr", "com.apple.quarantine", appdir/"imFile.app"]
+    postflight_steps do
+      run "xattr", args: ["-dr", "com.apple.quarantine", "{{appdir}}/imFile.app"]
     end
 
     # macOS-only cleanup paths under ~/Library.
