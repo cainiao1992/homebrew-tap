@@ -17,31 +17,10 @@ cask "zed-i18n" do
     app "Zed i18n.app", target: "Zed.app"
     binary "#{appdir}/Zed.app/Contents/MacOS/cli", target: "zed"
 
-    # Strip debug symbols to shrink the binary on disk (~94 MB smaller).
-    # strip invalidates the app's code signature, so we must re-sign.
-    # Prefer a local Developer ID certificate (if available) over ad-hoc signing
-    # to preserve Keychain access permissions across updates.
-    postflight do
-      app = "#{appdir}/Zed.app"
-      binary = "#{app}/Contents/MacOS/zed"
-      cli_binary = "#{app}/Contents/MacOS/cli"
-      entitlements = "#{app}/Contents/Resources/zed.entitlements"
-
-      system_command "strip", args: ["-x", binary] if File.exist?(binary)
-      system_command "strip", args: ["-x", cli_binary] if File.exist?(cli_binary)
-
-      # Find any code signing certificate; fallback to ad-hoc ("-") if none exists.
-      # A fixed certificate preserves Keychain access permissions across updates.
-      security_output = system_command("security",
-                                       args: ["find-identity", "-v", "-p", "codesigning"]).stdout
-      cert_id = security_output.scan(/\(([A-Z0-9]+)\)/).flatten.first || "-"
-
-      if File.exist?(entitlements)
-        system_command "codesign",
-                       args: ["--force", "--deep", "--sign", cert_id, "--entitlements", entitlements, app]
-      else
-        system_command "codesign", args: ["--force", "--deep", "--sign", cert_id, app]
-      end
+    # Upstream ships the app ad-hoc signed; without removing the Homebrew
+    # quarantine attribute macOS reports the bundle as "damaged".
+    postflight_steps do
+      run "xattr", args: ["-dr", "com.apple.quarantine", "{{appdir}}/Zed.app"]
     end
 
     zap trash: [
