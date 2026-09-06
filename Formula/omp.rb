@@ -1,7 +1,7 @@
 class Omp < Formula
   desc "Coding agent with the IDE wired in"
   homepage "https://omp.sh"
-  version "18.1.10"
+  version "18.1.11"
   license "MIT"
 
   livecheck do
@@ -13,7 +13,7 @@ class Omp < Formula
     on_arm do
       url "https://github.com/can1357/oh-my-pi/releases/download/v#{version}/omp-darwin-arm64",
           using: :nounzip
-      sha256 "f93613f5cc66a22e4368e955f7d121b9508306d4153b2932318e5d45ecf13a44"
+      sha256 "a81b2a98d99d5b34491d25232020d53cb0e5526095ef21c4cb9d4283e6511807"
     end
     on_intel do
       url "https://github.com/can1357/oh-my-pi/releases/download/v#{version}/omp-darwin-x64",
