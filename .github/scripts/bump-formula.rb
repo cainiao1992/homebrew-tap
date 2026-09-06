@@ -54,16 +54,21 @@ shas.each_with_index do |_old_sha, i|
   new_shas[i] = Digest::SHA256.file(tmp).hexdigest
 end
 
-updated = contents
+# Rewrite every occurrence of each old checksum. A repeated old value always
+# maps to one new value (same checksum implies the same asset), so global
+# replacement is safe; conflicting mappings would mean a broken formula.
+sha_map = {}
 shas.each_with_index do |old_sha, i|
-  new_sha = new_shas[i]
-  next if old_sha == new_sha
+  next if old_sha == new_shas[i]
 
-  # Replace only the i-th occurrence so duplicated checksums (e.g. the same
-  # build listed as both the root and a per-platform URL) are all updated.
-  seen = 0
-  updated = updated.gsub(old_sha) { (seen += 1) == i + 1 ? new_sha : old_sha }
+  if sha_map.key?(old_sha) && sha_map[old_sha] != new_shas[i]
+    abort "#{name}: conflicting new checksums for #{old_sha}"
+  end
+  sha_map[old_sha] = new_shas[i]
 end
+
+updated = contents
+sha_map.each { |old_sha, new_sha| updated = updated.gsub(old_sha, new_sha) }
 
 path.write(updated)
 
