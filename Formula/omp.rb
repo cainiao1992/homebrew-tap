@@ -18,7 +18,7 @@ class Omp < Formula
     on_intel do
       url "https://github.com/can1357/oh-my-pi/releases/download/v#{version}/omp-darwin-x64",
           using: :nounzip
-      sha256 "619a8a6ee7cba1e1a877ff8c7a7e4b73a2101baad6e9cc274841ff1db4b39b86"
+      sha256 "a807645d114470a1e2ad72b3646f118532141a36b0de062478fef999a8c3fac3"
     end
   end
 
@@ -26,12 +26,12 @@ class Omp < Formula
     on_arm do
       url "https://github.com/can1357/oh-my-pi/releases/download/v#{version}/omp-linux-arm64",
           using: :nounzip
-      sha256 "aba7beb612459789e539db980c95680c26d26ca0d67776152fce70cc6e1dac06"
+      sha256 "20dd6c946dcb61e2f79df83feeea513ae7ee93c71190d1cb8e7f81a82d5e5e13"
     end
     on_intel do
       url "https://github.com/can1357/oh-my-pi/releases/download/v#{version}/omp-linux-x64",
           using: :nounzip
-      sha256 "e91d5598ee47e1d4099fd8686dc9f61c9b755f2ea077d5f1774aba1072321f9e"
+      sha256 "2b2c785bbbafd3b43fb6096e4ae63a0342c4d8069de2f875a9b76ea9947c2383"
     end
   end
 
