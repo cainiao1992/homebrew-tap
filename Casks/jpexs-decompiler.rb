@@ -1,6 +1,6 @@
 cask "jpexs-decompiler" do
-  version "26.2.1"
-  sha256 "a160249e037115b935db253e993a6c00694f5d89bc4808c379e9a08a4034795c"
+  version "26.3.0"
+  sha256 "79a38e785825a3b90dd291537110f01fbec135637966f5552eec5344b5e97410"
 
   url "https://github.com/jindrapetrik/jpexs-decompiler/releases/download/version#{version}/ffdec_#{version}_macosx.zip"
   name "JPEXS Free Flash Decompiler"
