@@ -58,12 +58,18 @@ jobs:
           fi
 
   build:
-    name: macOS 15 (arm64 & x86_64)
+    name: macOS 15 ${{ matrix.name }}
     needs: check
     if: needs.check.outputs.should_build == 'true'
-    runs-on: macos-15
+    runs-on: ${{ matrix.runner }}
     outputs:
       version: ${{ steps.meta.outputs.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: arm64,  runner: macos-15,       arch: arm64,  suffix: arm64 }
+          - { name: x86_64, runner: macos-15-intel, arch: x86_64, suffix: x64 }
 
     steps:
       - name: Checkout Zeal source
@@ -82,12 +88,13 @@ jobs:
           version: "6.11.1"
           modules: qtpositioning qttasktree qtwebchannel qtwebengine
 
-      # Plain cmake (not lukka/run-cmake) so the arm64;x86_64 list needs no
-      # shell-quoting gymnastics. Qt is found via CMAKE_PREFIX_PATH set by
-      # setup-qt. aqt's Qt binaries are fat (arm64+x86_64); building Zeal fat
-      # too lets one build feed the two per-arch bundles packaged below.
+      # Plain cmake (not lukka/run-cmake) for full control. One build per
+      # arch: Homebrew libs (libarchive) are single-arch, so a fat build
+      # cannot link the x86_64 slice. Qt is found via CMAKE_PREFIX_PATH set
+      # by setup-qt. aqt's Qt binaries are fat (arm64+x86_64) on both
+      # runners, so each leg links its own slice of the same Qt.
       - name: Configure
-        run: cmake --preset release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+        run: cmake --preset release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
 
       - name: Build
         run: cmake --build --preset release
@@ -104,45 +111,35 @@ jobs:
           set -euo pipefail
           echo "version=$(<build/release/zeal_version)" >> "$GITHUB_OUTPUT"
 
-      # Shipping the fat bundle doubles the size (two Chromium slices), so
-      # thin each variant to its arch, drop the DevTools resources (only
-      # needed to debug web content) and re-sign. Each variant is smoke-tested
-      # (arm64 natively, x86_64 through Rosetta) before being packed as xz.
-      - name: Package per-arch tarballs
+      # The copied Qt frameworks are fat, so an untrimmed bundle ships both
+      # Chromium slices (617MB): thin to this runner's arch, drop the DevTools
+      # resources (only needed to debug web content) and re-sign, then smoke
+      # test the exact bytes being shipped.
+      - name: Package
         run: |
           set -euo pipefail
           VERSION="${{ steps.meta.outputs.version }}"
-          package_variant() {
-            arch=$1
-            suffix=$2
-            rm -rf pkg && mkdir pkg
-            cp -R build/release/Zeal.app pkg/Zeal.app
-            rm pkg/Zeal.app/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Resources/qtwebengine_devtools_resources.pak
-            find pkg/Zeal.app -type f -print0 |
-              while IFS= read -r -d '' f; do
-                if file "$f" | grep -q "Mach-O universal"; then
-                  lipo -thin "$arch" "$f" -output "$f.thin" && mv "$f.thin" "$f"
-                fi
-              done
-            codesign --force --deep --sign - pkg/Zeal.app
-            codesign --verify --deep pkg/Zeal.app
-            test -d pkg/Zeal.app/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Resources
-            lipo -archs pkg/Zeal.app/Contents/MacOS/Zeal | grep -q "$arch"
-            if [ "$arch" = x86_64 ]; then
-              arch -x86_64 pkg/Zeal.app/Contents/MacOS/Zeal --version
-            else
-              pkg/Zeal.app/Contents/MacOS/Zeal --version
-            fi
-            tar -cf - -C pkg Zeal.app | xz -9 -T0 > "Zeal-$VERSION-macos-$suffix.tar.xz"
-          }
-          package_variant arm64 arm64
-          package_variant x86_64 x64
+          rm -rf pkg && mkdir pkg
+          cp -R build/release/Zeal.app pkg/Zeal.app
+          rm pkg/Zeal.app/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Resources/qtwebengine_devtools_resources.pak
+          find pkg/Zeal.app -type f -print0 |
+            while IFS= read -r -d '' f; do
+              if file "$f" | grep -q "Mach-O universal"; then
+                lipo -thin ${{ matrix.arch }} "$f" -output "$f.thin" && mv "$f.thin" "$f"
+              fi
+            done
+          codesign --force --deep --sign - pkg/Zeal.app
+          codesign --verify --deep pkg/Zeal.app
+          test -d pkg/Zeal.app/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Resources
+          lipo -archs pkg/Zeal.app/Contents/MacOS/Zeal | grep -q "${{ matrix.arch }}"
+          pkg/Zeal.app/Contents/MacOS/Zeal --version
+          tar -cf - -C pkg Zeal.app | xz -9 -T0 > "Zeal-$VERSION-macos-${{ matrix.suffix }}.tar.xz"
           ls -lh Zeal-*.tar.xz
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: dist-${{ matrix.suffix }}
           path: Zeal-*.tar.xz
           if-no-files-found: error
 
@@ -154,7 +151,8 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: dist
+          pattern: dist-*
+          merge-multiple: true
           path: dist
 
       - name: Create Release
