@@ -1,8 +1,8 @@
 cask "zeal" do
   arch arm: "arm64"
 
-  version "0.0.0-bootstrap"
-  sha256 arm: "0000000000000000000000000000000000000000000000000000000000000000"
+  version "0.9.2-dev.27"
+  sha256 arm: "5f76c5f701d2591ecb4b053af38bdfc1effa6d12098412fe1ae555f3fb328d19"
 
   # Upstream ships no macOS binaries; the zip is built by build-zeal.yml and
   # published as a tap release. The url interpolates the version line.
