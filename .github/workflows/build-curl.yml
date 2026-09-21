@@ -4,6 +4,8 @@ name: Build curl (ECH)
 # tarballs as a GitHub release and rewrites Formula/curl.rb to pick them up.
 
 on:
+  schedule:
+    - cron: "0 3 * * *" # daily check for new curl releases (build only if changed)
   workflow_dispatch:
     inputs:
       curl_version:
@@ -26,19 +28,34 @@ jobs:
     outputs:
       curl_version: ${{ steps.resolve.outputs.curl_version }}
       ech_seq: ${{ inputs.ech_seq || '1' }}
+      should_build: ${{ steps.resolve.outputs.should_build }}
     steps:
+      - uses: actions/checkout@v4
+
       - id: resolve
         run: |
           set -euo pipefail
+          LATEST=$(curl -fsSL https://api.github.com/repos/curl/curl/releases/latest | jq -r '.tag_name' | sed -e 's/^curl-//' -e 's/_/./g')
           if [ -n "${{ inputs.curl_version }}" ]; then
             V="${{ inputs.curl_version }}"
           else
-            V=$(curl -fsSL https://api.github.com/repos/curl/curl/releases/latest | jq -r '.tag_name' | sed -e 's/^curl-//' -e 's/_/./g')
+            V="$LATEST"
+          fi
+          CURRENT=$(sed -nE 's/^  version "(.*)-ech\.[0-9]+"$/\1/p' Formula/curl.rb)
+          echo "upstream latest: $LATEST, formula has: $CURRENT, would build: $V"
+          # A scheduled run only builds when upstream moved past what the
+          # formula already ships; manual dispatches always build.
+          if [ "$V" = "$CURRENT" ] && [ -z "${{ inputs.curl_version }}" ]; then
+            echo "curl $CURRENT already built, nothing to do"
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
           echo "curl_version=$V" >> "$GITHUB_OUTPUT"
+          echo "should_build=true" >> "$GITHUB_OUTPUT"
 
   build:
     needs: version
+    if: needs.version.outputs.should_build == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -73,6 +90,7 @@ jobs:
 
   release:
     needs: [version, build]
+    if: needs.version.outputs.should_build == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
