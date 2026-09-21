@@ -1,16 +1,21 @@
 name: Build Zeal
 
-# Builds zealdocs/zeal from source (upstream ships no macOS binaries), deploys
-# Qt into a self-contained Zeal.app, and publishes it as a tap release that
-# Casks/zeal.rb picks up.
+# Follows zealdocs/zeal releases: upstream ships no macOS binaries, so a daily
+# check builds the latest upstream release tag, deploys Qt into a
+# self-contained Zeal.app, and publishes it as a tap release that
+# Casks/zeal.rb picks up. Actions cannot observe another repo's release
+# event, so the scheduled check polls the upstream API; manual dispatch can
+# force-build any ref.
 
 on:
+  schedule:
+    - cron: "17 2 * * *"
   workflow_dispatch:
     inputs:
       zeal_ref:
-        description: "zealdocs/zeal ref to build (branch, tag or SHA)"
+        description: "Ref to build (tag like v0.9.1, or a branch); empty = latest release, already-built releases are skipped"
         required: false
-        default: "main"
+        default: ""
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -19,8 +24,43 @@ permissions:
   contents: write
 
 jobs:
+  check:
+    name: Check upstream release
+    runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.check.outputs.ref }}
+      should_build: ${{ steps.check.outputs.should_build }}
+
+    steps:
+      - name: Check for new upstream release
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_REF: ${{ inputs.zeal_ref }}
+        run: |
+          set -euo pipefail
+          if [ -n "$INPUT_REF" ]; then
+            # Manual dispatch always builds the requested ref.
+            echo "ref=$INPUT_REF" >> "$GITHUB_OUTPUT"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          tag=$(gh api repos/zealdocs/zeal/releases/latest --jq .tag_name)
+          version=${tag#v}
+          if gh api "repos/$GITHUB_REPOSITORY/releases/tags/zeal-$version" >/dev/null 2>&1; then
+            echo "zeal-$version already built; skipping"
+            echo "ref=$tag" >> "$GITHUB_OUTPUT"
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new upstream release $tag; building"
+            echo "ref=$tag" >> "$GITHUB_OUTPUT"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: macOS 15 ARM64
+    needs: check
+    if: needs.check.outputs.should_build == 'true'
     runs-on: macos-15
     outputs:
       version: ${{ steps.meta.outputs.version }}
@@ -30,7 +70,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: zealdocs/zeal
-          ref: ${{ inputs.zeal_ref || 'main' }}
+          ref: ${{ needs.check.outputs.ref }}
           fetch-depth: 0
 
       - name: Install Dependencies
