@@ -69,7 +69,8 @@ jobs:
       - name: Build static curl
         run: |
           set -euo pipefail
-          WORK="$RUNNER_TEMP/curl-build" scripts/build-curl.sh
+          CURL_VERSION="${{ needs.version.outputs.curl_version }}" \
+            WORK="$RUNNER_TEMP/curl-build" scripts/build-curl.sh
 
       - name: ECH smoke test
         run: |
@@ -78,6 +79,8 @@ jobs:
           mkdir "$WORK/smoke"
           tar -xzf "$WORK"/curl-*-darwin-${{ matrix.arch }}.tar.gz -C "$WORK/smoke"
           "$WORK/smoke/bin/curl" --version
+          "$WORK/smoke/bin/curl" --version | grep -q "curl ${{ needs.version.outputs.curl_version }} " \
+            || { echo "ERROR: built a different version than requested" >&2; exit 1; }
           "$WORK/smoke/bin/curl" --doh-url https://one.one.one.one/dns-query --ech true \
             -sS https://crypto.cloudflare.com/cdn-cgi/trace | grep "sni=encrypted"
 
