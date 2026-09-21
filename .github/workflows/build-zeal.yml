@@ -1,0 +1,126 @@
+name: Build Zeal
+
+# Builds zealdocs/zeal from source (upstream ships no macOS binaries), deploys
+# Qt into a self-contained Zeal.app, and publishes it as a tap release that
+# Casks/zeal.rb picks up.
+
+on:
+  workflow_dispatch:
+    inputs:
+      zeal_ref:
+        description: "zealdocs/zeal ref to build (branch, tag or SHA)"
+        required: false
+        default: "main"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: macOS 15 ARM64
+    runs-on: macos-15
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - name: Checkout Zeal source
+        uses: actions/checkout@v4
+        with:
+          repository: zealdocs/zeal
+          ref: ${{ inputs.zeal_ref || 'main' }}
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        run: brew install cpp-httplib libarchive tomlplusplus
+
+      - name: Install Qt
+        uses: trollixx/setup-qt@v1
+        with:
+          version: "6.11.1"
+          modules: qtpositioning qttasktree qtwebchannel qtwebengine
+
+      - name: Configure & Build
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: release
+          buildPreset: release
+
+      # -webengine because WebEngine resources are not always fully
+      # auto-detected; -codesign=- ad-hoc signs the embedded frameworks so the
+      # bundle launches on Apple Silicon.
+      - name: Deploy Qt Runtime
+        run: macdeployqt build/release/Zeal.app -webengine -codesign=- -verbose=1
+
+      - name: Smoke Test
+        run: |
+          set -euo pipefail
+          APP=build/release/Zeal.app
+          lipo -info "$APP/Contents/MacOS/Zeal" | grep arm64
+          test -d "$APP/Contents/Frameworks/QtWebEngineCore.framework"
+          test -d "$APP/Contents/Frameworks/QtWidgets.framework"
+          "$APP/Contents/MacOS/Zeal" --version
+
+      - name: Resolve Version
+        id: meta
+        run: |
+          set -euo pipefail
+          echo "version=$(<build/release/zeal_version)" >> "$GITHUB_OUTPUT"
+
+      - name: Package
+        run: |
+          set -euo pipefail
+          ditto -c -k --keepParent build/release/Zeal.app \
+            "Zeal-${{ steps.meta.outputs.version }}-macos-arm64.zip"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-arm64
+          path: Zeal-*-macos-arm64.zip
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-arm64
+          path: dist
+
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Rebuilding an already-released version replaces its asset instead
+          # of failing on the existing tag.
+          gh release create "zeal-$VERSION" \
+            --title "Zeal $VERSION" \
+            --notes "Zeal built from zealdocs/zeal for macOS (arm64)." \
+            "dist/Zeal-$VERSION-macos-arm64.zip" ||
+          gh release upload "zeal-$VERSION" --clobber \
+            "dist/Zeal-$VERSION-macos-arm64.zip"
+
+      - name: Update Casks/zeal.rb
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.build.outputs.version }}"
+          SHA256=$(sha256sum "dist/Zeal-$VERSION-macos-arm64.zip" | cut -d' ' -f1)
+          ruby .github/scripts/update-zeal-cask.rb "$VERSION" "$SHA256"
+
+      - name: Commit cask
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/zeal.rb
+          git commit -m "zeal ${{ needs.build.outputs.version }}"
+          git pull --rebase origin main
+          git push origin main
