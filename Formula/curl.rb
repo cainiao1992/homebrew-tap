@@ -6,9 +6,9 @@ class Curl < Formula
   # The root spec is the darwin-arm64 build, overridden for Intel below. Having
   # a root spec also lets the formula load on Linux hosts (e.g. the bump CI);
   # it stays uninstallable there because macOS-only.
-  url "https://github.com/cainiao1992/homebrew-tap/releases/download/curl-8.21.0-ech.1/curl-8.21.0-ech.1-darwin-arm64.tar.gz"
-  version "8.21.0-ech.1"
-  sha256 "4bd046119f1c05f73c0b9edf1896a7a448bc4f9bb17378187435a546950b336e"
+  url "https://github.com/cainiao1992/homebrew-tap/releases/download/curl-8.22.0-ech.1/curl-8.22.0-ech.1-darwin-arm64.tar.gz"
+  version "8.22.0-ech.1"
+  sha256 "585efaa42eae636641297ffc3fa8abfaca36faef8c027c1ee399d64f41a7752d"
   license "curl"
 
   # Version and sha256 are rewritten automatically by .github/workflows/build-curl.yml
@@ -20,8 +20,8 @@ class Curl < Formula
 
   on_macos do
     on_intel do
-      url "https://github.com/cainiao1992/homebrew-tap/releases/download/curl-8.21.0-ech.1/curl-8.21.0-ech.1-darwin-x64.tar.gz"
-      sha256 "f857654c1d649b3ee01e0752d2eba85e1957a3e98bcc4d8fe70e7a05c2964772"
+      url "https://github.com/cainiao1992/homebrew-tap/releases/download/curl-8.22.0-ech.1/curl-8.22.0-ech.1-darwin-x64.tar.gz"
+      sha256 "3134a342992f16fe765e6c0f5011a59734ec767197ad8b84e4b5539de5efbe82"
     end
   end
 
