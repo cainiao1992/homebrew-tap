@@ -82,14 +82,15 @@ jobs:
           version: "6.11.1"
           modules: qtpositioning qttasktree qtwebchannel qtwebengine
 
-      - name: Configure & Build
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: release
-          buildPreset: release
-          # aqt's Qt binaries are fat (arm64+x86_64); building Zeal fat too
-          # lets one build feed the two per-arch bundles packaged below.
-          configurePresetAdditionalArgs: "['-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64']"
+      # Plain cmake (not lukka/run-cmake) so the arm64;x86_64 list needs no
+      # shell-quoting gymnastics. Qt is found via CMAKE_PREFIX_PATH set by
+      # setup-qt. aqt's Qt binaries are fat (arm64+x86_64); building Zeal fat
+      # too lets one build feed the two per-arch bundles packaged below.
+      - name: Configure
+        run: cmake --preset release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+
+      - name: Build
+        run: cmake --build --preset release
 
       # Qt 6 macdeployqt auto-detects WebEngine dependencies (the old
       # -webengine flag no longer exists); -codesign=- ad-hoc signs the
