@@ -1,14 +1,13 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Rewrites Casks/zeal.rb with a new version and the arm64 zip sha256 produced
-# by .github/workflows/build-zeal.yml.
+# Rewrites Casks/zeal.rb with a new version and the per-arch tarball sha256s
+# produced by .github/workflows/build-zeal.yml.
 #
-# Usage: update-zeal-cask.rb <version> <sha256>
-# Exits 1 when nothing changes so the caller can avoid an empty commit.
+# Usage: update-zeal-cask.rb <version> <sha256_arm64> <sha256_x64>
 
-version, sha256 = ARGV
-raise "usage: update-zeal-cask.rb <version> <sha256>" unless version && sha256
+version, sha_arm, sha_intel = ARGV
+raise "usage: update-zeal-cask.rb <version> <sha256_arm64> <sha256_x64>" unless version && sha_arm && sha_intel
 
 path = File.expand_path("../../Casks/zeal.rb", __dir__)
 before = File.read(path)
@@ -16,10 +15,11 @@ before = File.read(path)
 content = before.dup
 content.sub!(/^  version ".*"$/, %Q{  version "#{version}"}) ||
   raise("version line not found in #{path}")
-content.sub!(/^  sha256 arm: "[0-9a-f]{64}"$/, %Q{  sha256 arm: "#{sha256}"}) ||
-  raise("sha256 line not found in #{path}")
+content.sub!(/^  sha256 arm: "[0-9a-f]{64}",$/, %Q{  sha256 arm: "#{sha_arm}",}) ||
+  raise("arm sha256 line not found in #{path}")
+content.sub!(/^         intel: "[0-9a-f]{64}"$/, %Q{         intel: "#{sha_intel}"}) ||
+  raise("intel sha256 line not found in #{path}")
 
 raise "placeholder sha not replaced" if content.include?("0" * 64)
 
 File.write(path, content)
-exit 1 if content == before

@@ -1,12 +1,13 @@
 cask "zeal" do
-  arch arm: "arm64"
+  arch arm: "arm64", intel: "x64"
 
   version "0.9.2-dev.27"
-  sha256 arm: "5f76c5f701d2591ecb4b053af38bdfc1effa6d12098412fe1ae555f3fb328d19"
+  sha256 arm: "0000000000000000000000000000000000000000000000000000000000000000",
+         intel: "0000000000000000000000000000000000000000000000000000000000000000"
 
-  # Upstream ships no macOS binaries; the zip is built by build-zeal.yml and
-  # published as a tap release. The url interpolates the version line.
-  url "https://github.com/cainiao1992/homebrew-tap/releases/download/zeal-#{version}/Zeal-#{version}-macos-#{arch}.zip"
+  # Upstream ships no macOS binaries; the tarball is built by build-zeal.yml
+  # and published as a tap release. The url interpolates the version line.
+  url "https://github.com/cainiao1992/homebrew-tap/releases/download/zeal-#{version}/Zeal-#{version}-macos-#{arch}.tar.xz"
   name "Zeal"
   desc "Offline documentation browser"
   homepage "https://zealdocs.org"
@@ -14,8 +15,6 @@ cask "zeal" do
   livecheck do
     skip "Built from source by build-zeal.yml; releases are cut by CI"
   end
-
-  depends_on arch: :arm64
 
   # The bundle is ad-hoc signed; without removing the Homebrew quarantine
   # attribute macOS reports it as "damaged" (same as zed-i18n).
