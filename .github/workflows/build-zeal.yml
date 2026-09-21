@@ -88,11 +88,11 @@ jobs:
           configurePreset: release
           buildPreset: release
 
-      # -webengine because WebEngine resources are not always fully
-      # auto-detected; -codesign=- ad-hoc signs the embedded frameworks so the
-      # bundle launches on Apple Silicon.
+      # Qt 6 macdeployqt auto-detects WebEngine dependencies (the old
+      # -webengine flag no longer exists); -codesign=- ad-hoc signs the
+      # embedded frameworks so the bundle launches on Apple Silicon.
       - name: Deploy Qt Runtime
-        run: macdeployqt build/release/Zeal.app -webengine -codesign=- -verbose=1
+        run: macdeployqt build/release/Zeal.app -codesign=- -verbose=1
 
       - name: Smoke Test
         run: |
