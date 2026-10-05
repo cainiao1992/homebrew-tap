@@ -1,12 +1,12 @@
 cask "anylinuxfs-gui" do
-  version "0.7.5"
+  version "0.8.0"
 
   on_macos do
     # Upstream publishes a single Apple Silicon-only DMG, named
     # "anylinuxfs-gui_<version>_aarch64.dmg".
     arch arm: "aarch64"
 
-    sha256 arm: "701118b5d04368a5153fa0f39d4fb78206509f409d6088797802efbab462fa3f"
+    sha256 arm: "360d484e96750814391d624914950e7563365eec955071d6aaff1b7a4da10bdf"
 
     url "https://github.com/fenio/anylinuxfs-gui/releases/download/v#{version}/anylinuxfs-gui_#{version}_#{arch}.dmg"
 
@@ -36,5 +36,8 @@ cask "anylinuxfs-gui" do
     strategy :github_latest
   end
 
-  depends_on macos: :big_sur
+  # Upstream only ships an Apple Silicon build; without the arch constraint
+  # `brew bump-cask-pr` fails on the missing intel checksum.
+  depends_on arch: :arm64
+  depends_on :macos
 end
