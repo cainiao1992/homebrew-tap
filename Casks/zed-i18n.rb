@@ -2,14 +2,14 @@ cask "zed-i18n" do
   arch arm: "aarch64", intel: "x86_64"
   os macos: "macos", linux: "linux"
 
-  version "1.22.0-i18n.1"
+  version "1.23.1-i18n.1"
   # As of 1.15.0-i18n.2 upstream ships language-agnostic universal builds
   # ("Zed-i18n-macos-<arch>.dmg" / "zed-i18n-linux-<arch>.tar.gz") that bundle
   # all locales, so the previous per-language assets are gone.
-  sha256 arm:          "69d70a3c667e2abb21ea2e2ac71777436d16d070ccbd3d8b7fb3c92786521084",
-         intel:        "c2cd98f03fb12a1f53b9ef1c152967dc753e27cca2da8fe2847c6cd971694403",
-         arm64_linux:  "ea3b2a00ca157946eeab3292b2b530767372d0075303da92e4804678977ee665",
-         x86_64_linux: "857537ac5bd55d73d7f9d80ef36a3df502d71281309f2ca2dfe74fe2c754c079"
+  sha256 arm:          "a991bdea894dba2da694c63347d5802a8607dd9957aec36b2bb05f172c62ea19",
+         intel:        "90635e09e01e46be7878edc98ea9733b30aa0e9896b28a39047434f17df14b55",
+         arm64_linux:  "034d98cee7831f261480bd13836f9c8d63a3e6e17fa018f2efc56a6314709c70",
+         x86_64_linux: "4a3d50b2e23062b1471f7d1d93c4575804ac91d16795b47b000b23e478e5b4a8"
 
   on_macos do
     # The DMG ships as "Zed i18n.app"; install it as "Zed.app" for consistency
