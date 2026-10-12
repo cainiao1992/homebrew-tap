@@ -16,27 +16,33 @@
 
 require "digest"
 require "open3"
-require "pathname"
+
+# Regex, not a string, so `Lint/InterpolationCheck` cannot "simplify" it.
+VERSION_INTERPOLATION = /#\{version\}/.freeze
 
 name, new_version = ARGV
 abort "usage: bump-formula.rb <formula> <new-version>" if name.nil? || new_version.nil?
 
-path = Pathname("Formula/#{name}.rb")
-contents = path.read
+file = "Formula/#{name}.rb"
+contents = File.read(file)
 
 old_version = contents[/^\s*version\s+"([^"]+)"/, 1]
 abort "#{name}: no `version` stanza found" if old_version.nil?
 
-# Replace the old version everywhere (the `version` stanza and any hardcoded
-# version tags inside URLs). Word boundaries avoid partial-match corruption.
+# Replace every version occurrence in the file (the `version` stanza and any
+# hardcoded version tags inside URLs). Word boundaries avoid partial-match
+# corruption. `#{version}` placeholders stay intact in the file and are only
+# expanded in `stable_part` below, for URL extraction.
 contents = contents.gsub(/\b#{Regexp.escape(old_version)}\b/, new_version)
 
-# Strip `resource` blocks so their pinned URLs/checksums are never rewritten.
+# Strip `resource` and `livecheck` blocks so their pinned URLs/checksums are
+# never rewritten or counted as stable URLs.
 stable_part = contents.dup
+stable_part.gsub!(VERSION_INTERPOLATION, new_version)
 stable_part.gsub!(/^  resource\s+"[^"]+"\s+do.*?^  end$/m, "")
+stable_part.gsub!(/^  livecheck\s+do.*?^  end$/m, "")
 
 urls = stable_part.scan(/^\s*url\s+"((?:[^"\\]|\\.)*)"/).flatten
-                   .map { |url| url.gsub('#{version}', new_version) }
 shas = stable_part.scan(/^\s*sha256\s+"([0-9a-f]{64})"/).flatten
 
 if urls.size != shas.size
@@ -70,7 +76,7 @@ end
 updated = contents
 sha_map.each { |old_sha, new_sha| updated = updated.gsub(old_sha, new_sha) }
 
-path.write(updated)
+File.write(file, updated)
 
 if updated == contents
   puts "#{name}: no checksum changes for #{old_version} -> #{new_version}"
