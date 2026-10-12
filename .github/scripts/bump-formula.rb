@@ -6,8 +6,20 @@
 # `brew bump-formula-pr` only rewrites root-level `url`/`sha256` stanzas, so it
 # cannot handle formulae that define per-platform URLs inside `if OS.mac?` or
 # `on_macos`/`on_linux` blocks (e.g. multi-variant releases). This script
-# rewrites every stable `url`/`sha256` pair instead, leaving `resource` blocks
-# untouched. URLs may embed `#{version}` or a hardcoded version tag.
+# rewrites every stable `url`/`sha256` pair instead. URLs may embed
+# `#{version}` or a hardcoded version tag.
+#
+# Checksums are matched to URLs by asset name, the convention used by
+# `oven-sh/homebrew-bun`'s `scripts/release.rb`:
+#
+#     url "https://…/bun-linux-aarch64.zip"
+#     sha256 "…" # bun-linux-aarch64.zip
+#
+# The trailing comment is the lookup key, so neither the stanza order nor the
+# checksum order has to be kept in sync by hand. A formula that annotates only
+# some of its checksums is rejected rather than guessed at; a formula with no
+# annotations at all falls back to pairing by position, which is how formulae
+# maintained elsewhere (e.g. by their own release workflow) keep working.
 #
 # The file is only written when every checksum re-download succeeds, so a
 # failed bump leaves the formula untouched.
@@ -17,8 +29,9 @@
 require "digest"
 require "open3"
 
-# Regex, not a string, so `Lint/InterpolationCheck` cannot "simplify" it.
+# Regexes, not strings, so `Lint/InterpolationCheck` cannot "simplify" them.
 VERSION_INTERPOLATION = /#\{version\}/.freeze
+ASSET_COMMENT = /#\s*(\S+)/.freeze
 
 name, new_version = ARGV
 abort "usage: bump-formula.rb <formula> <new-version>" if name.nil? || new_version.nil?
@@ -42,34 +55,58 @@ stable_part.gsub!(VERSION_INTERPOLATION, new_version)
 stable_part.gsub!(/^  resource\s+"[^"]+"\s+do.*?^  end$/m, "")
 stable_part.gsub!(/^  livecheck\s+do.*?^  end$/m, "")
 
-urls = stable_part.scan(/^\s*url\s+"((?:[^"\\]|\\.)*)"/).flatten
-shas = stable_part.scan(/^\s*sha256\s+"([0-9a-f]{64})"/).flatten
+stable_urls = stable_part.scan(/^\s*url\s+"((?:[^"\\]|\\.)*)"/).flatten
+stable_shas = stable_part.scan(/^\s*sha256\s+"([0-9a-f]{64})"(.*)$/)
+abort "#{name}: no `url`/`sha256` stanzas found" if stable_shas.empty?
 
-if urls.size != shas.size
-  abort "#{name}: #{urls.size} `url` stanzas but #{shas.size} `sha256` stanzas"
-end
+named_shas = stable_shas.map { |(sha, trailing)| [sha, trailing[ASSET_COMMENT, 1]] }
+
+checksum_urls =
+  if named_shas.none? { |(_sha, asset)| asset.nil? }
+    urls_by_asset = stable_urls.to_h { |url| [url.split("/").last, url] }
+    if urls_by_asset.size != stable_urls.size
+      abort "#{name}: repeated asset names make `# <asset-name>` matching ambiguous"
+    end
+
+    named_shas.map do |(sha, asset)|
+      url = urls_by_asset[asset]
+      abort "#{name}: no `url` stanza ends in #{asset}" if url.nil?
+
+      [sha, url]
+    end
+  else
+    if named_shas.any? { |(_sha, asset)| !asset.nil? }
+      abort "#{name}: only some `sha256` stanzas name their asset in a trailing comment"
+    end
+
+    if stable_urls.size != stable_shas.size
+      abort "#{name}: #{stable_urls.size} `url` stanzas but #{stable_shas.size} `sha256` stanzas"
+    end
+
+    puts "#{name}: no `# <asset-name>` comments; pairing checksums by position"
+    stable_shas.map(&:first).zip(stable_urls)
+  end
 
 # Re-download every variant first; abort without writing if any fails.
-new_shas = Array.new(shas.size)
-shas.each_with_index do |_old_sha, i|
-  url = urls[i]
+new_shas = checksum_urls.map do |_old_sha, url|
   tmp = "/tmp/bump-formula-download"
   _out, err, status = Open3.capture3("curl", "-fsSL", "-o", tmp, url)
   abort "#{name}: download failed for #{url}: #{err.strip}" unless status.success?
 
-  new_shas[i] = Digest::SHA256.file(tmp).hexdigest
+  Digest::SHA256.file(tmp).hexdigest
 end
 
 # Rewrite every occurrence of each old checksum. A repeated old value always
 # maps to one new value (same checksum implies the same asset), so global
 # replacement is safe; conflicting mappings would mean a broken formula.
 sha_map = {}
-shas.each_with_index do |old_sha, i|
+checksum_urls.each_with_index do |(old_sha, _url), i|
   next if old_sha == new_shas[i]
 
   if sha_map.key?(old_sha) && sha_map[old_sha] != new_shas[i]
     abort "#{name}: conflicting new checksums for #{old_sha}"
   end
+
   sha_map[old_sha] = new_shas[i]
 end
 
@@ -89,4 +126,4 @@ abort "#{name}: git add failed" unless git_add.success?
 git_commit = Open3.capture3("git", "commit", "-m", "#{name} #{new_version}").last
 abort "#{name}: git commit failed" unless git_commit.success?
 
-puts "#{name}: #{old_version} -> #{new_version} (#{shas.size} checksums updated)"
+puts "#{name}: #{old_version} -> #{new_version} (#{sha_map.size} checksums updated)"
