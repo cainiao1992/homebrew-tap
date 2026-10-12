@@ -39,7 +39,7 @@ class Omp < Formula
     bin.install Dir["omp-*"].first => "omp"
     (bin/"omp").chmod 0555
     with_env(HOME: buildpath) do
-      generate_completions_from_executable(bin/"omp", "completions", shells: [:bash, :zsh, :fish])
+      generate_completions_from_executable(bin/"omp", "completions")
     end
   end
 
