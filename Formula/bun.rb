@@ -1,8 +1,13 @@
 class Bun < Formula
-  desc "Incredibly fast JavaScript runtime, bundler, transpiler and package manager"
+  desc "Incredibly fast JavaScript runtime, bundler, transpiler and package manager - all in one."
   homepage "https://bun.sh/"
-  version "1.4.3"
   license "MIT"
+  version "1.4.3"
+
+  livecheck do
+    url "https://github.com/oven-sh/bun/releases/latest"
+    regex(%r{href=.*?/tag/bun-v?(\d+(?:\.\d+)+)["' >]}i)
+  end
 
   if OS.mac?
     if Hardware::CPU.arm? || Hardware::CPU.in_rosetta2?
@@ -30,22 +35,14 @@ class Bun < Formula
     odie "Unsupported platform. Please submit a bug report here: https://bun.sh/issues\n#{OS.report}"
   end
 
-  # Livecheck sits after the platform `url` blocks: with no root `url` stanza,
-  # the LivecheckUrlSymbol cop derives "stable url" from the first `url` call
-  # and would otherwise compare this URL against itself.
-  livecheck do
-    url "https://github.com/oven-sh/bun/releases/latest"
-    regex(%r{href=.*?/tag/bun-v?(\d+(?:\.\d+)+)["' >]}i)
-  end
-
   # TODO: to become an official formula we need to build from source
   def install
     bin.install "bun"
-    ENV["BUN_INSTALL"] = bin.to_s
+    ENV["BUN_INSTALL"] = "#{bin}"
     generate_completions_from_executable(bin/"bun", "completions")
   end
 
-  test do
-    assert_match version.to_s, shell_output("#{bin}/bun -v")
+  def test
+    assert_match "#{version}", shell_output("#{bin}/bun -v")
   end
 end
