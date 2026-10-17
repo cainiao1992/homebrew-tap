@@ -103,19 +103,25 @@ jobs:
             echo "::endgroup::"
           done
 
-          if [ ${#FAILED[@]} -gt 0 ]; then
-            echo "::error::Failed to bump: ${FAILED[*]}"
-            exit 1
-          fi
-
           if ! git diff --quiet || ! git diff --cached --quiet; then
             echo "::error::Uncommitted changes remain after bump."
             exit 1
           fi
 
-          if [ "$(git rev-list --count origin/main..HEAD)" -eq 0 ]; then
-            echo "No changes to commit."
-            exit 0
+          commit_count=$(git rev-list --count origin/main..HEAD)
+
+          # Push successful bumps before reporting failures: a single broken
+          # package must not hold back the updates that did land. Failed
+          # bumps commit nothing, so the push only contains healthy changes.
+          if [ "$commit_count" -gt 0 ]; then
+            git push origin main
           fi
 
-          git push origin main
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo "::error::Failed to bump: ${FAILED[*]}"
+            exit 1
+          fi
+
+          if [ "$commit_count" -eq 0 ]; then
+            echo "No changes to commit."
+          fi
