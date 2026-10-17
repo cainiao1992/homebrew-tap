@@ -1,6 +1,6 @@
 cask "oakreader" do
-  version "0.20.0"
-  sha256 "68f087b8a898bedab84ed0565d914a951d3a2de10fbfe12d68e60198f28095d2"
+  version "0.20.4"
+  sha256 "5647abd0e6860a93616b509d4c95e8a28da4648b8d61dde504a44c8caf5df2f9"
 
   # Upstream ships a single universal (arm64 + x86_64) DMG on its own CDN, not
   # on the GitHub releases page, which carries no assets.
