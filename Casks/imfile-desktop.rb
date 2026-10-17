@@ -49,7 +49,15 @@ cask "imfile-desktop" do
 
   livecheck do
     url :homepage
-    strategy :github_latest
+    # Upstream sometimes publishes a release without uploading any assets
+    # (v2.3.5 shipped a changelog and zero files). Such a version cannot be
+    # installed, so don't offer it for bumping; the check resumes on its own
+    # once a release carries assets again.
+    strategy :github_latest do |json, regex|
+      next if json["assets"].blank?
+
+      json["tag_name"]&.[](regex, 1)
+    end
   end
 
   depends_on macos: :monterey
