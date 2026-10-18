@@ -33,9 +33,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - id: resolve
+        env:
+          # Authenticated lookup: the unauthenticated GitHub API allows only
+          # 60 requests/hour per IP, and hosted runners share theirs, which
+          # made this step fail intermittently with HTTP 403.
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          LATEST=$(curl -fsSL https://api.github.com/repos/curl/curl/releases/latest | jq -r '.tag_name' | sed -e 's/^curl-//' -e 's/_/./g')
+          LATEST=$(gh api repos/curl/curl/releases/latest --jq .tag_name | sed -e 's/^curl-//' -e 's/_/./g')
           if [ -n "${{ inputs.curl_version }}" ]; then
             V="${{ inputs.curl_version }}"
           else
