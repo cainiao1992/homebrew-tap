@@ -1,8 +1,8 @@
 class JadxHeadlessMcp < Formula
   desc "Headless MCP server for Android APK static analysis built on jadx-core"
   homepage "https://github.com/1013503897/jadx-headless-mcp"
-  url "https://github.com/1013503897/jadx-headless-mcp/releases/download/v0.7.1/jadx-headless-mcp-0.7.1-all.jar"
-  sha256 "6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75"
+  url "https://github.com/1013503897/jadx-headless-mcp/releases/download/v0.8.0/jadx-headless-mcp-0.8.0-all.jar"
+  sha256 "4b9a01c23845c123c217840182d2b5f2c26a7ca20dec3d08810b310fc80a2372"
   license "Apache-2.0"
 
   livecheck do
