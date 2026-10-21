@@ -1,9 +1,9 @@
 cask "rayburst" do
-  version "4.0.1"
-  sha256 arm:          "f4d1c40d7794dc7f42323001b472b2a722b168ace57e21074b9e780da883b3f2",
-         intel:        "2f2e1e56f7db4a5706600314d4a09893341043580281a36f4fa11ae7a94102f2",
-         arm64_linux:  "4f0f4430e6286fa6b86e39d7897e04b03e5615e2e0714e4f437c3c1ee3dfcf21",
-         x86_64_linux: "009f444219bafb9bb160c2a336ad2afb64b6d3a4b2f015556b3ec11f2e542a56"
+  version "4.1.0"
+  sha256 arm:          "94d10fb28b9cb0d02acd562ca45beba426d8f58dd777a492c5bdab5c73ea0d60",
+         intel:        "8e03ec541881a677b3a3c46101563bdaa83d850a1be983293897d904d26b4a58",
+         arm64_linux:  "54f7266fa191622e63346a0c54a9f6a53115338b40fe698c12a5bd521be55f91",
+         x86_64_linux: "12818cd15a1f6cde9ea79ec539096de15ea93c14c6ece5fba31222406dce63ba"
 
   on_macos do
     # Upstream ships separate per-architecture DMGs rather than a universal one.
