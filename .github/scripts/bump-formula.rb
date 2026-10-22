@@ -40,13 +40,28 @@ file = "Formula/#{name}.rb"
 contents = File.read(file)
 
 old_version = contents[/^\s*version\s+"([^"]+)"/, 1]
-abort "#{name}: no `version` stanza found" if old_version.nil?
+
+# Formulae pinned by hardcoded release tags carry no `version` stanza — audit
+# rejects one that only repeats the tag scanned from the URL. Read the version
+# off the release tag instead ("…/download/v2.3.0/curl-impersonate-v2.3.0.…").
+# `\b` cannot match there (the tag is glued to a `v`), so this branch uses
+# digit lookarounds: the `v` is left untouched and stays in the rewritten URL,
+# while a leading `1` in "12.3.0" still cannot match "2.3.0".
+version_pattern =
+  if old_version
+    /\b#{Regexp.escape(old_version)}\b/
+  else
+    old_version = contents[%r{/releases/download/v?([^/"]+)/}, 1]
+    abort "#{name}: no `version` stanza and no `/releases/download/<tag>/` URL" if old_version.nil?
+
+    /(?<!\d)#{Regexp.escape(old_version)}(?!\d)/
+  end
 
 # Replace every version occurrence in the file (the `version` stanza and any
-# hardcoded version tags inside URLs). Word boundaries avoid partial-match
+# hardcoded version tags inside URLs). The guards avoid partial-match
 # corruption. `#{version}` placeholders stay intact in the file and are only
 # expanded in `stable_part` below, for URL extraction.
-contents = contents.gsub(/\b#{Regexp.escape(old_version)}\b/, new_version)
+contents = contents.gsub(version_pattern, new_version)
 
 # Strip `resource` and `livecheck` blocks so their pinned URLs/checksums are
 # never rewritten or counted as stable URLs.
