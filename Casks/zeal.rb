@@ -1,9 +1,9 @@
 cask "zeal" do
   arch arm: "arm64", intel: "x64"
 
-  version "0.9.1"
-  sha256 arm: "477949279e372726149cfeb203a9fecded54985cb28e32a559120dfc602fab01",
-         intel: "bf831ac238111a600eae973f08526bf0c6d77997d4b9d77e0004a0f73f1c4cdc"
+  version "0.9.2"
+  sha256 arm: "4d75989fa9f27ccfbb5e0f7bb2db90ff4f325f9a225739220e48ee47ed7fa774",
+         intel: "2a814f963b71a7b24b87ecd945494f2c4e9e53fff5503b67f5322218a4220925"
 
   # Upstream ships no macOS binaries; the tarball is built by build-zeal.yml
   # and published as a tap release. The url interpolates the version line.
