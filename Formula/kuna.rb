@@ -32,10 +32,11 @@ class Kuna < Formula
   end
 
   def install
-    # The tarball holds a single versioned directory with the binary inside.
-    dir = Dir["kuna-*"].first
-    bin.install "#{dir}/kuna"
-    doc.install "#{dir}/LICENSE", "#{dir}/NOTICE"
+    # Upstream tarballs wrap everything in kuna-<version>-<os>-<arch>/, and
+    # Homebrew chdirs into a lone top-level directory while staging, so the
+    # payload already sits directly in the working directory here.
+    bin.install "kuna"
+    doc.install "LICENSE", "NOTICE"
   end
 
   def caveats
