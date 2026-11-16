@@ -15,19 +15,19 @@ class Kuna < Formula
   # so arm64 Linux keeps the glibc build.
   if OS.mac?
     if Hardware::CPU.arm?
-      url "https://github.com/Noelo-Lab/kuna/releases/download/v1.998/kuna-v1.998-macos-arm64.tar.gz"
-      sha256 "e22e641b2bccb49ac29d8ca792adc5effe989691acf017409c050c507f3be40a"
+      url "https://github.com/Noelo-Lab/kuna/releases/download/v1.999/kuna-v1.999-macos-arm64.tar.gz"
+      sha256 "d04cd0b5d1c9be37b790591a68007f9ee3039a2ed2c16349bc0599dcb2716865"
     else
-      url "https://github.com/Noelo-Lab/kuna/releases/download/v1.998/kuna-v1.998-macos-x86_64.tar.gz"
-      sha256 "6cfb790eb8b8984297b90ae5386201b9a2a4f4bb1753b9e3e5319810cd6e202b"
+      url "https://github.com/Noelo-Lab/kuna/releases/download/v1.999/kuna-v1.999-macos-x86_64.tar.gz"
+      sha256 "deca7d3b7e04f51b706992451f124c0d0eefd5352a8d997601826f133be06368"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
-      url "https://github.com/Noelo-Lab/kuna/releases/download/v1.998/kuna-v1.998-linux-arm64.tar.gz"
-      sha256 "e7232b20ba744e91ea743afd2b94eafb472a57954fc375a3c7f03bfb94473dfb"
+      url "https://github.com/Noelo-Lab/kuna/releases/download/v1.999/kuna-v1.999-linux-arm64.tar.gz"
+      sha256 "c453af2084b8eb31669988a71e3d7fc8df8a10494450914b7ca7da3643ebedf6"
     else
-      url "https://github.com/Noelo-Lab/kuna/releases/download/v1.998/kuna-v1.998-linux-x86_64-musl.tar.gz"
-      sha256 "ee3924e3bd89e714f76621eda0ca7b78473a5691e40bc1e598b4b7201935e5ca"
+      url "https://github.com/Noelo-Lab/kuna/releases/download/v1.999/kuna-v1.999-linux-x86_64-musl.tar.gz"
+      sha256 "941953e913a79ae0cac23e3261e2298de48b3560423d1cd0eb996f8d3c3f9e3e"
     end
   end
 
