@@ -31,6 +31,6 @@ cask "launchnext" do
     "~/Library/Caches/LaunchNext",
     "~/Library/HTTPStorages/com.roversx.launchnext",
     "~/Library/Preferences/com.roversx.launchnext.plist",
-    "~/Library/Saved Application State/com.roversx.launchnext.savedState"，
+    "~/Library/Saved Application State/com.roversx.launchnext.savedState",
   ]
 end
